@@ -1,0 +1,266 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://infinite-shipper.example.com/schemas/synthesis-request.json",
+  "title": "TTS Synthesis Request/Response",
+  "description": "Request and response formats for Google Cloud Text-to-Speech API",
+  "definitions": {
+    "SynthesisRequest": {
+      "type": "object",
+      "required": ["input", "voice", "audioConfig"],
+      "properties": {
+        "input": {
+          "type": "object",
+          "required": ["ssml"],
+          "properties": {
+            "ssml": {
+              "type": "string",
+              "description": "SSML markup from SSMLTemplate",
+              "minLength": 10,
+              "maxLength": 5000
+            }
+          },
+          "additionalProperties": false
+        },
+        "voice": {
+          "type": "object",
+          "required": ["languageCode", "name"],
+          "properties": {
+            "languageCode": {
+              "type": "string",
+              "description": "BCP-47 language code",
+              "enum": ["en-GB"],
+              "default": "en-GB"
+            },
+            "name": {
+              "type": "string",
+              "description": "Specific voice name",
+              "enum": ["en-GB-Neural2-B"],
+              "default": "en-GB-Neural2-B"
+            },
+            "ssmlGender": {
+              "type": "string",
+              "description": "Voice gender (optional)",
+              "enum": ["MALE", "FEMALE", "NEUTRAL"],
+              "default": "MALE"
+            }
+          },
+          "additionalProperties": false
+        },
+        "audioConfig": {
+          "type": "object",
+          "required": ["audioEncoding", "sampleRateHertz"],
+          "properties": {
+            "audioEncoding": {
+              "type": "string",
+              "description": "Audio format",
+              "enum": ["MP3", "OGG_OPUS", "LINEAR16"],
+              "default": "MP3"
+            },
+            "sampleRateHertz": {
+              "type": "integer",
+              "description": "Audio sample rate",
+              "enum": [24000, 48000],
+              "default": 24000
+            },
+            "speakingRate": {
+              "type": "number",
+              "description": "Base speaking rate (overridden by SSML)",
+              "minimum": 0.25,
+              "maximum": 4.0,
+              "default": 1.0
+            },
+            "pitch": {
+              "type": "number",
+              "description": "Base pitch in semitones (overridden by SSML)",
+              "minimum": -20.0,
+              "maximum": 20.0,
+              "default": 0.0
+            },
+            "volumeGainDb": {
+              "type": "number",
+              "description": "Volume gain in dB",
+              "minimum": -96.0,
+              "maximum": 16.0
+            },
+            "effectsProfileId": {
+              "type": "array",
+              "description": "Audio effects profiles",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "headphone-class-device",
+                  "handset-class-device",
+                  "small-bluetooth-speaker-class-device",
+                  "medium-bluetooth-speaker-class-device",
+                  "large-home-entertainment-class-device",
+                  "large-automotive-class-device",
+                  "telephony-class-application"
+                ]
+              },
+              "maxItems": 5
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "SynthesisResponse": {
+      "type": "object",
+      "required": ["audioContent"],
+      "properties": {
+        "audioContent": {
+          "type": "string",
+          "description": "Base64-encoded audio data (MP3/OGG/WAV)",
+          "contentEncoding": "base64",
+          "minLength": 1000
+        },
+        "timepoints": {
+          "type": "array",
+          "description": "Optional timing information for SSML marks",
+          "items": {
+            "type": "object",
+            "required": ["markName", "timeSeconds"],
+            "properties": {
+              "markName": {
+                "type": "string",
+                "description": "SSML <mark> tag name"
+              },
+              "timeSeconds": {
+                "type": "number",
+                "description": "Time offset in seconds",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "audioConfig": {
+          "type": "object",
+          "description": "Echo of request audio configuration",
+          "properties": {
+            "audioEncoding": {"type": "string"},
+            "sampleRateHertz": {"type": "integer"}
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "required": ["error"],
+      "properties": {
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": {
+              "type": "integer",
+              "description": "HTTP status code"
+            },
+            "message": {
+              "type": "string",
+              "description": "Human-readable error message"
+            },
+            "status": {
+              "type": "string",
+              "description": "Error status string",
+              "examples": ["INVALID_ARGUMENT", "UNAUTHENTICATED", "RESOURCE_EXHAUSTED"]
+            },
+            "details": {
+              "type": "array",
+              "description": "Additional error details",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "$comment": "Standard area synthesis request",
+      "request": {
+        "input": {
+          "ssml": "<speak><prosody rate=\"0.85\"><emphasis level=\"strong\">Viking.</emphasis><break time=\"800ms\"/>Southwesterly<break time=\"200ms\"/>force 7.<break time=\"600ms\"/>Rough.<break time=\"600ms\"/>Rain.<break time=\"600ms\"/>Good.<break time=\"1500ms\"/></prosody></speak>"
+        },
+        "voice": {
+          "languageCode": "en-GB",
+          "name": "en-GB-Neural2-B",
+          "ssmlGender": "MALE"
+        },
+        "audioConfig": {
+          "audioEncoding": "MP3",
+          "sampleRateHertz": 24000,
+          "speakingRate": 1.0,
+          "pitch": 0.0,
+          "effectsProfileId": ["headphone-class-device"]
+        }
+      },
+      "response": {
+        "audioContent": "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//...",
+        "audioConfig": {
+          "audioEncoding": "MP3",
+          "sampleRateHertz": 24000
+        }
+      }
+    },
+    {
+      "$comment": "Phantom area synthesis request with pitch distortion",
+      "request": {
+        "input": {
+          "ssml": "<speak><prosody rate=\"0.9\" pitch=\"-12%\"><prosody pitch=\"+0%\"><emphasis level=\"strong\">The Void.</emphasis><break time=\"800ms\"/></prosody>Southwesterly<break time=\"200ms\"/>force 6.<break time=\"600ms\"/><prosody pitch=\"-12%\">Moderate.<break time=\"600ms\"/>Fog.<break time=\"600ms\"/></prosody><prosody pitch=\"-6%\"><emphasis level=\"reduced\">Poor.</emphasis><break time=\"1500ms\"/></prosody></prosody></speak>"
+        },
+        "voice": {
+          "languageCode": "en-GB",
+          "name": "en-GB-Neural2-B",
+          "ssmlGender": "MALE"
+        },
+        "audioConfig": {
+          "audioEncoding": "MP3",
+          "sampleRateHertz": 24000,
+          "effectsProfileId": ["headphone-class-device"]
+        }
+      },
+      "response": {
+        "audioContent": "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//...",
+        "audioConfig": {
+          "audioEncoding": "MP3",
+          "sampleRateHertz": 24000
+        }
+      }
+    },
+    {
+      "$comment": "Error response - authentication failure",
+      "error": {
+        "error": {
+          "code": 401,
+          "message": "Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential.",
+          "status": "UNAUTHENTICATED"
+        }
+      }
+    },
+    {
+      "$comment": "Error response - rate limit exceeded",
+      "error": {
+        "error": {
+          "code": 429,
+          "message": "Quota exceeded for quota metric 'CharactersPerMinutePerProject' and limit 'CharactersPerMinutePerProject' of service 'texttospeech.googleapis.com' for consumer 'project_number:123456789'.",
+          "status": "RESOURCE_EXHAUSTED",
+          "details": [
+            {
+              "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+              "reason": "RATE_LIMIT_EXCEEDED",
+              "domain": "googleapis.com",
+              "metadata": {
+                "quota_metric": "texttospeech.googleapis.com/characters_per_minute_per_project",
+                "quota_limit": "CharactersPerMinutePerProject"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Natural Speech</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #00ff00;
+    }
+    h1 {
+      color: #00ff00;
+      border-bottom: 2px solid #00ff00;
+      padding-bottom: 10px;
+    }
+    button {
+      background: #003300;
+      color: #00ff00;
+      border: 2px solid #00ff00;
+      padding: 15px 30px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+      font-family: 'Courier New', monospace;
+    }
+    button:hover {
+      background: #004400;
+    }
+    button:disabled {
+      background: #222;
+      color: #666;
+      border-color: #666;
+      cursor: not-allowed;
+    }
+    #output {
+      margin-top: 30px;
+      padding: 20px;
+      background: #000;
+      border: 1px solid #00ff00;
+      min-height: 200px;
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
+    .status {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #004400;
+      background: #001100;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎙️ Natural Speech Generation Test</h1>
+  
+  <div class="status">
+    <strong>Status:</strong> <span id="status">Initializing...</span>
+  </div>
+
+  <button id="testBtn">Generate & Play Report</button>
+  <button id="broadcastBtn">Generate Full Broadcast</button>
+  <button id="scriptBtn">Generate Script (Text Only)</button>
+  <button id="allAreasBtn">Play All Area Names</button>
+  <button id="utsireBtn">Test "North Utsire" Pronunciation</button>
+  <button id="clearBtn">Clear Output</button>
+  
+  <pre id="output">Ready to test natural speech generation...
+  
+Click "Generate & Play Report" to synthesize and play a weather report using Google Cloud TTS.
+  
+This test page validates:
+- SSML template generation
+- Google Cloud TTS API integration
+- Audio playback via Web Audio API
+- Natural speech quality (listen for gaps, robotic artifacts)
+</pre>
+  
+  <script type="module">
+    const output = document.getElementById('output');
+    const statusEl = document.getElementById('status');
+    const testBtn = document.getElementById('testBtn');
+    const broadcastBtn = document.getElementById('broadcastBtn');
+    const scriptBtn = document.getElementById('scriptBtn');
+    const allAreasBtn = document.getElementById('allAreasBtn');
+    const utsireBtn = document.getElementById('utsireBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    let audioContext = null;
+    let currentlyPlaying = false;
+    const variantCounts = {
+      introduction: {},
+      galeWarning: {},
+      timePeriod: {}
+    };
+    
+    function log(message) {
+      output.textContent += message + '\n';
+      output.scrollTop = output.scrollHeight;
+    }
+    
+    function updateStatus(message, isError = false) {
+      statusEl.textContent = message;
+      statusEl.style.color = isError ? '#ff0000' : '#00ff00';
+    }
+    
+    // Initialize on first user interaction
+    function initAudioContext() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        log('✅ AudioContext initialized');
+      }
+    }
+    
+    async function testNaturalSpeech() {
+      try {
+        initAudioContext();
+        testBtn.disabled = true;
+        updateStatus('Generating report...');
+        
+        log('\n=== Test Starting ===');
+        log('Timestamp: ' + new Date().toISOString());
+        
+        // Import modules (these will be created in subsequent phases)
+        log('\n📦 Loading modules...');
+        
+        // Check if modules exist
+        const modulesExist = await checkModules();
+        if (!modulesExist) {
+          log('❌ Required modules not yet implemented');
+          log('   This test page will work after Phase 3 (User Story 1) is complete.');
+          log('   Expected modules:');
+          log('   - src/core/generator.js (existing)');
+          log('   - src/audio/ssml-template-builder.js (to be created)');
+          log('   - src/audio/tts-service-adapter.js (to be created)');
+          updateStatus('Waiting for implementation...', true);
+          testBtn.disabled = false;
+          return;
+        }
+        
+        const { weatherGenerator } = await import('./src/core/generator.js');
+        const { SSMLTemplateBuilder } = await import('./src/audio/ssml-template-builder.js');
+        const { GoogleCloudTTSAdapter } = await import('./src/audio/tts-service-adapter.js');
+        
+        log('✅ Modules loaded successfully');
+        
+        // 1. Generate weather report
+        log('\n📋 Step 1: Generate Weather Report');
+        const report = weatherGenerator.generateWeatherReport();
+        log(`   Area: ${report.area.name} (${report.area.type})`);
+        log(`   Wind: ${report.wind.direction} ${report.wind.forceText}`);
+        log(`   Precipitation: ${report.precipitation.text} (${report.precipitation.modifier} ${report.precipitation.type})`);
+        log(`   Visibility: ${report.visibility}`);
+        log(`   Icing: ${report.icing ? report.icing.text : 'None'}`);
+        log(`   Text: "${report.text}"`);
+        
+        // 2. Build SSML template
+        log('\n📝 Step 2: Build SSML Template');
+        const builder = new SSMLTemplateBuilder();
+        const template = builder.build(report);
+        log(`   Report ID: ${template.reportId}`);
+        log(`   Is Phantom: ${template.isPhantom}`);
+        log(`   Character Count: ${template.characterCount}`);
+        log(`   SSML Preview (first 300 chars):`);
+        log(`   ${template.ssml.substring(0, 300)}...`);
+        
+        // 3. Synthesize audio
+        log('\n🎤 Step 3: Synthesize Audio (Google Cloud TTS)');
+        updateStatus('Synthesizing audio via Google Cloud TTS...');
+        const tts = new GoogleCloudTTSAdapter();
+        const startTime = Date.now();
+        const audio = await tts.synthesize(template);
+        const synthesisTime = Date.now() - startTime;
+        
+        log(`   ✅ Synthesis complete in ${synthesisTime}ms`);
+        log(`   Duration: ${audio.duration.toFixed(2)}s`);
+        log(`   Sample Rate: ${audio.sampleRate} Hz`);
+        log(`   File Size: ${(audio.fileSize / 1024).toFixed(1)} KB`);
+        log(`   Meets FR-003 (<2s): ${synthesisTime < 2000 ? '✅ YES' : '❌ NO'}`);
+        
+        // 4. Play audio
+        log('\n🔊 Step 4: Play Audio');
+        updateStatus('Playing audio...');
+        const source = audioContext.createBufferSource();
+        source.buffer = audio.audioBuffer;
+        source.connect(audioContext.destination);
+        source.start();
+        
+        log(`   ✅ Audio playing (${audio.duration.toFixed(1)}s)`);
+        log('   🎧 Listen for:');
+        log('      - Natural flow (no gaps between words)');
+        log('      - Proper pauses (800ms after area name, 600ms between components)');
+        log('      - No robotic artifacts or word-by-word synthesis');
+        
+        // 5. Get usage stats
+        source.onended = () => {
+          log('\n✅ Playback complete');
+          const stats = tts.getUsageStats();
+          log(`\n📊 Usage Statistics:`);
+          log(`   Requests: ${stats.requestCount}`);
+          log(`   Characters: ${stats.characterCount}`);
+          log(`   Estimated Cost: $${stats.estimatedCost.toFixed(4)}`);
+          log(`   Average Latency: ${stats.averageLatency.toFixed(0)}ms`);
+          
+          updateStatus('Test complete ✅');
+          testBtn.disabled = false;
+          
+          log('\n=== Test Complete ===');
+          log('Next steps: Manually verify audio quality');
+          log('- No perceivable gaps? → SC-002 ✅');
+          log('- Sounds natural and humanlike? → SC-001 target');
+          log('- Pause durations correct? → Measure with Audacity');
+        };
+        
+      } catch (error) {
+        log(`\n❌ Error: ${error.message}`);
+        log(`   Stack: ${error.stack}`);
+        updateStatus('Test failed ❌', true);
+        testBtn.disabled = false;
+      }
+    }
+    
+    async function checkModules() {
+      try {
+        // Try to import to see if they exist
+        const generatorExists = await fetch('./src/core/generator.js', { method: 'HEAD' })
+          .then(r => r.ok)
+          .catch(() => false);
+        
+        const builderExists = await fetch('./src/audio/ssml-template-builder.js', { method: 'HEAD' })
+          .then(r => r.ok)
+          .catch(() => false);
+        
+        const adapterExists = await fetch('./src/audio/tts-service-adapter.js', { method: 'HEAD' })
+          .then(r => r.ok)
+          .catch(() => false);
+        
+        return generatorExists && builderExists && adapterExists;
+      } catch {
+        return false;
+      }
+    }
+    
+    async function playAllAreaNames() {
+      try {
+        if (currentlyPlaying) {
+          log('\n⚠️  Already playing audio');
+          return;
+        }
+
+        initAudioContext();
+        currentlyPlaying = true;
+        testBtn.disabled = true;
+        allAreasBtn.disabled = true;
+
+        log('\n=== Playing All Area Names ===');
+        log('Timestamp: ' + new Date().toISOString());
+
+        // Import modules (with cache busting)
+        log('\n📦 Loading modules...');
+        const cacheBust = `?v=${Date.now()}`;
+        const { STANDARD_AREAS, PHANTOM_AREAS } = await import(`./src/core/areas.js${cacheBust}`);
+        const { SSMLTemplateBuilder } = await import(`./src/audio/ssml-template-builder.js${cacheBust}`);
+        const { GoogleCloudTTSAdapter } = await import(`./src/audio/tts-service-adapter.js${cacheBust}`);
+        const { PROSODY_CONFIG } = await import(`./src/audio/prosody-config.js${cacheBust}`);
+        log('✅ Modules loaded');
+        log(`   Pronunciations available: ${PROSODY_CONFIG.pronunciations ? Object.keys(PROSODY_CONFIG.pronunciations).length : 0}`);
+
+        const allAreas = [
+          ...STANDARD_AREAS.map(name => ({ name, type: 'standard' })),
+          ...PHANTOM_AREAS.map(name => ({ name, type: 'phantom' }))
+        ];
+
+        log(`\n🌊 Found ${STANDARD_AREAS.length} standard areas and ${PHANTOM_AREAS.length} phantom areas`);
+        log(`   Total: ${allAreas.length} areas\n`);
+
+        updateStatus(`Playing area names (0/${allAreas.length})...`);
+
+        const builder = new SSMLTemplateBuilder();
+        const tts = new GoogleCloudTTSAdapter();
+
+        // Play each area sequentially
+        for (let i = 0; i < allAreas.length; i++) {
+          const area = allAreas[i];
+          const areaType = area.type === 'phantom' ? '👻' : '🌊';
+
+          log(`${areaType} [${i + 1}/${allAreas.length}] ${area.name}...`);
+          updateStatus(`Playing area names (${i + 1}/${allAreas.length})...`);
+
+          try {
+            // Build SSML using the builder (includes pronunciation hints)
+            const ssml = builder.buildAreaNameSSML(area.name, area.type === 'phantom');
+
+            const template = {
+              ssml,
+              reportId: `area-${i}`,
+              areaName: area.name,
+              isPhantom: area.type === 'phantom',
+              characterCount: ssml.length,
+              createdAt: Date.now()
+            };
+
+            log(`   Synthesizing...`);
+            const startTime = Date.now();
+
+            // Add timeout wrapper
+            const audio = await Promise.race([
+              tts.synthesize(template),
+              new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Synthesis timeout (10s)')), 10000)
+              )
+            ]);
+
+            const synthTime = Date.now() - startTime;
+            log(`   ✓ Synthesized in ${synthTime}ms`);
+            log(`   Audio buffer: ${audio.audioBuffer ? 'OK' : 'NULL'}, Duration: ${audio.duration}s`);
+
+            // Ensure AudioContext is running
+            if (audioContext.state === 'suspended') {
+              log(`   Resuming AudioContext...`);
+              await audioContext.resume();
+            }
+            log(`   AudioContext state: ${audioContext.state}`);
+
+            // Play and wait for completion
+            log(`   Playing...`);
+            await new Promise((resolve, reject) => {
+              const source = audioContext.createBufferSource();
+              source.buffer = audio.audioBuffer;
+              source.connect(audioContext.destination);
+
+              source.onended = () => {
+                log(`   ✓ Played`);
+                resolve();
+              };
+
+              source.onerror = (e) => {
+                log(`   ✗ Playback error: ${e}`);
+                reject(new Error('Playback error'));
+              };
+
+              try {
+                source.start();
+                log(`   Source started, waiting for playback...`);
+
+                // Add safety timeout in case onended never fires
+                setTimeout(() => {
+                  log(`   ⚠ Playback timeout, forcing next...`);
+                  resolve();
+                }, (audio.duration * 1000) + 2000);
+              } catch (e) {
+                log(`   ✗ Failed to start: ${e.message}`);
+                reject(e);
+              }
+            });
+
+            // Small pause between areas
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+          } catch (error) {
+            log(`   ✗ Failed: ${error.message}`);
+            log(`   Continuing to next area...`);
+            continue;
+          }
+        }
+
+        log('\n✅ All area names played!');
+        const stats = tts.getUsageStats();
+        log(`\n📊 Usage Statistics:`);
+        log(`   Requests: ${stats.requestCount}`);
+        log(`   Characters: ${stats.characterCount}`);
+        log(`   Estimated Cost: $${stats.estimatedCost.toFixed(4)}`);
+
+        updateStatus('All areas complete ✅');
+        log('\n=== Complete ===');
+
+      } catch (error) {
+        log(`\n❌ Error: ${error.message}`);
+        log(`   Stack: ${error.stack}`);
+        updateStatus('Playback failed ❌', true);
+      } finally {
+        currentlyPlaying = false;
+        testBtn.disabled = false;
+        allAreasBtn.disabled = false;
+      }
+    }
+
+    async function generateScriptOnly() {
+      try {
+        log('\n=== Generating Broadcast Script (Text Only) ===');
+        log('Timestamp: ' + new Date().toISOString());
+
+        // Import modules (with cache busting)
+        const cacheBust = `?v=${Date.now()}`;
+        const { BroadcastGenerator } = await import(`./src/core/broadcast-generator.js${cacheBust}`);
+
+        log('\n📝 Generating broadcast text...');
+        const broadcastGen = new BroadcastGenerator();
+        const broadcast = broadcastGen.generateBroadcast(31); // Full 31 areas
+
+        // Build the script text
+        log('\n' + '='.repeat(80));
+        log('SHIPPING FORECAST SCRIPT');
+        log('Generated: ' + new Date(broadcast.timestamp).toLocaleString());
+        log('Broadcast ID: ' + broadcast.broadcastId);
+        log('='.repeat(80));
+
+        // Introduction
+        log('\n📻 INTRODUCTION:');
+        log('Variant: ' + broadcast.introduction.variantId + (broadcast.introduction.isSurreal ? ' (SURREAL)' : ' (standard)'));
+        log('Text: ' + broadcast.introduction.text);
+        log('');
+
+        // Gale Warnings (conditional)
+        if (broadcast.galeWarnings) {
+          log('⚠️  GALE WARNINGS:');
+          log('Format: ' + broadcast.galeWarnings.formatType + ' (' + (broadcast.galeWarnings.formatType === 'standard' ? 'listing affected areas' : 'listing unaffected areas') + ')');
+          log('Affected areas: ' + broadcast.galeWarnings.affectedAreas.length + ' area(s) with force 8+');
+          log('Listed areas: ' + broadcast.galeWarnings.listedAreas.length + ' area(s)');
+          log('Text: ' + broadcast.galeWarnings.text);
+          log('');
+        } else {
+          log('✓ NO GALE WARNINGS (no force 8+ winds)');
+          log('');
+        }
+
+        // General Synopsis (NEW EBNF feature)
+        if (broadcast.generalSynopsis) {
+          log('🌡️  GENERAL SYNOPSIS:');
+          log('Pressure: ' + broadcast.generalSynopsis.pressureDescription + ' ' + broadcast.generalSynopsis.currentDirection + ' of ' + broadcast.generalSynopsis.currentArea + ' ' + broadcast.generalSynopsis.currentPressure);
+          if (broadcast.generalSynopsis.changeType) {
+            log('Change: ' + broadcast.generalSynopsis.changeType + ' ' + broadcast.generalSynopsis.changeRate);
+          }
+          log('Expected: ' + broadcast.generalSynopsis.expectedDirection + ' of ' + broadcast.generalSynopsis.expectedArea + ' ' + broadcast.generalSynopsis.expectedPressure + ' by ' + broadcast.generalSynopsis.expectedTime);
+          log('Text: ' + broadcast.generalSynopsis.text);
+          log('');
+        }
+
+        // Time Period
+        log('🕐 TIME PERIOD:');
+        log('Variant: ' + broadcast.timePeriod.variantId);
+        log('Text: ' + broadcast.timePeriod.text);
+        log('');
+
+        // Area Forecasts
+        log('🌊 AREA FORECASTS (' + broadcast.areaForecasts.length + ' areas):');
+        log('');
+        broadcast.areaForecasts.forEach((forecast, i) => {
+          const areaNum = String(i + 1).padStart(2, '0');
+          const phantom = forecast.area.isPhantom ? ' 👻' : '';
+          log(`${areaNum}. ${forecast.area.name}${phantom}`);
+          log(`    Wind: ${forecast.wind.direction} ${forecast.wind.forceText}`);
+          log(`    Precipitation: ${forecast.precipitation.text}`);
+          log(`    Visibility: ${forecast.visibility}`);
+          log(`    Icing: ${forecast.icing ? forecast.icing.text : 'None'}`);
+          log('');
+        });
+
+        log('='.repeat(80));
+        log('✓ Script generation complete!');
+        log('Total segments: Introduction + ' + (broadcast.galeWarnings ? 'Gale Warnings + ' : '') + 'Time Period + ' + broadcast.areaForecasts.length + ' Areas');
+
+        // Track variant distribution
+        variantCounts.introduction[broadcast.introduction.variantId] =
+          (variantCounts.introduction[broadcast.introduction.variantId] || 0) + 1;
+        variantCounts.timePeriod[broadcast.timePeriod.variantId] =
+          (variantCounts.timePeriod[broadcast.timePeriod.variantId] || 0) + 1;
+
+        // Show variant distribution
+        log('\n📊 Session Variant Distribution:');
+        log('Introduction variants used: ' + Object.keys(variantCounts.introduction).length);
+        log('Time period variants used: ' + Object.keys(variantCounts.timePeriod).length);
+
+        updateStatus('Script generated');
+
+      } catch (error) {
+        log(`\n❌ Error: ${error.message}`);
+        log(`   Stack: ${error.stack}`);
+        updateStatus('Script generation failed', true);
+      }
+    }
+
+    async function testUtsirePronunciation() {
+      try {
+        if (currentlyPlaying) {
+          log('\n⚠️  Already playing audio');
+          return;
+        }
+
+        initAudioContext();
+        currentlyPlaying = true;
+        testBtn.disabled = true;
+        allAreasBtn.disabled = true;
+        utsireBtn.disabled = true;
+
+        log('\n=== Testing "North Utsire" Pronunciation ===');
+
+        // Import modules (with cache busting)
+        const cacheBust = `?v=${Date.now()}`;
+        const { SSMLTemplateBuilder } = await import(`./src/audio/ssml-template-builder.js${cacheBust}`);
+        const { GoogleCloudTTSAdapter } = await import(`./src/audio/tts-service-adapter.js${cacheBust}`);
+        const { PROSODY_CONFIG } = await import(`./src/audio/prosody-config.js${cacheBust}`);
+
+        log(`Pronunciations loaded: ${PROSODY_CONFIG.pronunciations ? Object.keys(PROSODY_CONFIG.pronunciations).length : 0}`);
+
+        const builder = new SSMLTemplateBuilder();
+        const tts = new GoogleCloudTTSAdapter();
+
+        // Build SSML with pronunciation hints
+        const ssml = builder.buildAreaNameSSML('North Utsire', false);
+        log(`\nGenerated SSML:\n${ssml}\n`);
+
+        const template = {
+          ssml,
+          reportId: 'utsire-test',
+          areaName: 'North Utsire',
+          isPhantom: false,
+          characterCount: ssml.length,
+          createdAt: Date.now()
+        };
+
+        log('Synthesizing...');
+        const audio = await tts.synthesize(template);
+        log(`✓ Synthesized (${audio.duration.toFixed(2)}s)`);
+
+        // Ensure AudioContext is running
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume();
+        }
+
+        // Play audio
+        await new Promise((resolve) => {
+          const source = audioContext.createBufferSource();
+          source.buffer = audio.audioBuffer;
+          source.connect(audioContext.destination);
+          source.onended = resolve;
+          source.start();
+          log('🔊 Playing...');
+        });
+
+        log('✓ Complete!\n');
+        updateStatus('Test complete');
+
+      } catch (error) {
+        log(`\n❌ Error: ${error.message}`);
+        updateStatus('Test failed', true);
+      } finally {
+        currentlyPlaying = false;
+        testBtn.disabled = false;
+        allAreasBtn.disabled = false;
+        utsireBtn.disabled = false;
+      }
+    }
+
+    async function generateFullBroadcast() {
+      try {
+        if (currentlyPlaying) {
+          log('\n⚠️  Already playing audio');
+          return;
+        }
+
+        initAudioContext();
+        currentlyPlaying = true;
+        testBtn.disabled = true;
+        broadcastBtn.disabled = true;
+        allAreasBtn.disabled = true;
+        utsireBtn.disabled = true;
+
+        log('\n=== Generating Full Broadcast ===');
+        log('Timestamp: ' + new Date().toISOString());
+
+        // Import modules (with cache busting)
+        const cacheBust = `?v=${Date.now()}`;
+        const { BroadcastGenerator } = await import(`./src/core/broadcast-generator.js${cacheBust}`);
+        const { SSMLTemplateBuilder } = await import(`./src/audio/ssml-template-builder.js${cacheBust}`);
+        const { GoogleCloudTTSAdapter } = await import(`./src/audio/tts-service-adapter.js${cacheBust}`);
+
+        log('\n📦 Step 1: Generate Complete Broadcast');
+        const broadcastGen = new BroadcastGenerator();
+        const broadcast = broadcastGen.generateBroadcast(5); // 5 areas for faster testing
+
+        log(`   Broadcast ID: ${broadcast.broadcastId}`);
+        log(`   Introduction Variant: ${broadcast.introduction.variantId} (${broadcast.introduction.isSurreal ? 'surreal' : 'standard'})`);
+        log(`   Introduction: "${broadcast.introduction.text}"`);
+
+        if (broadcast.galeWarnings) {
+          log(`   Gale Warnings: ${broadcast.galeWarnings.affectedAreas.length} area(s) with force 8+ (${broadcast.galeWarnings.formatType} format)`);
+          log(`   Text: "${broadcast.galeWarnings.text}"`);
+        } else {
+          log(`   Gale Warnings: None (no force 8+ winds)`);
+        }
+
+        log(`   Time Period Variant: ${broadcast.timePeriod.variantId}`);
+        log(`   Time Period: "${broadcast.timePeriod.text}"`);
+        log(`   Area Forecasts: ${broadcast.areaForecasts.length} areas`);
+
+        // Track variant distribution
+        variantCounts.introduction[broadcast.introduction.variantId] =
+          (variantCounts.introduction[broadcast.introduction.variantId] || 0) + 1;
+        variantCounts.timePeriod[broadcast.timePeriod.variantId] =
+          (variantCounts.timePeriod[broadcast.timePeriod.variantId] || 0) + 1;
+
+        log('\n📝 Step 2: Build SSML Template');
+        const builder = new SSMLTemplateBuilder();
+        const template = builder.buildBroadcast(broadcast);
+
+        log(`   Character Count: ${template.characterCount} chars`);
+        if (template.characterCount > 5000) {
+          log(`   ⚠️  Exceeds Google Cloud TTS 5000 char limit!`);
+        }
+        log(`   SSML Preview (first 500 chars):`);
+        log(`   ${template.ssml.substring(0, 500)}...`);
+
+        log('\n🎤 Step 3: Synthesize Audio');
+        updateStatus('Synthesizing broadcast...');
+        const tts = new GoogleCloudTTSAdapter();
+        const startTime = Date.now();
+        const audio = await tts.synthesize(template);
+        const synthesisTime = Date.now() - startTime;
+
+        log(`   ✅ Synthesis complete in ${synthesisTime}ms`);
+        log(`   Duration: ${audio.duration.toFixed(2)}s`);
+        log(`   Sample Rate: ${audio.sampleRate} Hz`);
+        log(`   File Size: ${(audio.fileSize / 1024).toFixed(1)} KB`);
+
+        log('\n🔊 Step 4: Play Broadcast');
+        updateStatus('Playing broadcast...');
+
+        // Ensure AudioContext is running
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume();
+        }
+
+        // Play audio
+        await new Promise((resolve) => {
+          const source = audioContext.createBufferSource();
+          source.buffer = audio.audioBuffer;
+          source.connect(audioContext.destination);
+          source.onended = resolve;
+          source.start();
+          log(`   🎧 Playing (${audio.duration.toFixed(1)}s)...`);
+          log('   Listen for:');
+          log('      - Introduction with timestamp/date');
+          log('      - Gale warnings (if force 8+ present)');
+          log('      - Time period transition');
+          log('      - Area forecasts');
+          log('      - Proper pause timings (1500ms/1000ms/800ms)');
+        });
+
+        log('\n✅ Broadcast Complete!');
+        updateStatus('Broadcast complete ✅');
+
+        // Show variant distribution
+        log('\n📊 Variant Distribution (This Session):');
+        log(`   Introduction Variants: ${Object.keys(variantCounts.introduction).length} unique`);
+        Object.entries(variantCounts.introduction).forEach(([id, count]) => {
+          log(`     ${id}: ${count} times`);
+        });
+
+        log(`   Time Period Variants: ${Object.keys(variantCounts.timePeriod).length} unique`);
+        Object.entries(variantCounts.timePeriod).forEach(([id, count]) => {
+          log(`     ${id}: ${count} times`);
+        });
+
+      } catch (error) {
+        log(`\n❌ Error: ${error.message}`);
+        log(`   Stack: ${error.stack}`);
+        updateStatus('Broadcast failed ❌', true);
+      } finally {
+        currentlyPlaying = false;
+        testBtn.disabled = false;
+        broadcastBtn.disabled = false;
+        allAreasBtn.disabled = false;
+        utsireBtn.disabled = false;
+      }
+    }
+
+    testBtn.addEventListener('click', testNaturalSpeech);
+    broadcastBtn.addEventListener('click', generateFullBroadcast);
+    scriptBtn.addEventListener('click', generateScriptOnly);
+    allAreasBtn.addEventListener('click', playAllAreaNames);
+    utsireBtn.addEventListener('click', testUtsirePronunciation);
+
+    clearBtn.addEventListener('click', () => {
+      output.textContent = 'Output cleared.\n';
+      updateStatus('Ready');
+    });
+    
+    // Initial status check
+    (async () => {
+      const modulesExist = await checkModules();
+      if (modulesExist) {
+        updateStatus('Ready - Click to test');
+      } else {
+        updateStatus('Waiting for implementation (Phase 3)', true);
+        log('\n⚠️  Implementation not yet complete');
+        log('   This test page requires Phase 3 (User Story 1) to be implemented.');
+        log('   Current progress can be tracked in tasks.md');
+      }
+    })();
+  </script>
+</body>
+</html>

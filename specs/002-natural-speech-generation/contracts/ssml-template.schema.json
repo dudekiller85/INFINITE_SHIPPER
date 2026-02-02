@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://infinite-shipper.example.com/schemas/ssml-template.json",
+  "title": "SSML Template",
+  "description": "SSML document structure for shipping forecast weather reports with BBC Radio 4 prosody",
+  "type": "object",
+  "required": ["ssml", "reportId", "areaName", "isPhantom", "characterCount", "createdAt"],
+  "properties": {
+    "ssml": {
+      "type": "string",
+      "description": "Complete SSML document with prosody markup",
+      "minLength": 100,
+      "maxLength": 5000,
+      "pattern": "^<speak>.*</speak>$",
+      "examples": [
+        "<speak><prosody rate=\"0.85\"><emphasis level=\"strong\">Viking.</emphasis><break time=\"800ms\"/>Southwesterly<break time=\"200ms\"/>force 7.<break time=\"600ms\"/>Rough.<break time=\"600ms\"/>Rain.<break time=\"600ms\"/>Good.<break time=\"1500ms\"/></prosody></speak>"
+      ]
+    },
+    "reportId": {
+      "type": "string",
+      "description": "Unique identifier for tracking (UUID or hash)",
+      "minLength": 8,
+      "maxLength": 64,
+      "examples": ["550e8400-e29b-41d4-a716-446655440000", "a3f2c1b9d4e5"]
+    },
+    "areaName": {
+      "type": "string",
+      "description": "Sea area name for debugging/logging",
+      "minLength": 4,
+      "maxLength": 30,
+      "examples": ["Viking", "Dogger", "The Void", "Forties"]
+    },
+    "isPhantom": {
+      "type": "boolean",
+      "description": "Whether this is a phantom area (affects prosody rules)"
+    },
+    "characterCount": {
+      "type": "integer",
+      "description": "Number of characters in SSML (for cost tracking)",
+      "minimum": 100,
+      "maximum": 5000
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when template was generated"
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "ssml": "<speak><prosody rate=\"0.85\"><emphasis level=\"strong\">Viking.</emphasis><break time=\"800ms\"/>Southwesterly<break time=\"200ms\"/>5 to 7,<break time=\"600ms\"/>increasing later.<break time=\"600ms\"/>Rough at first, moderate swell.<break time=\"600ms\"/>Rain.<break time=\"600ms\"/><emphasis level=\"reduced\">Good.</emphasis><break time=\"1500ms\"/></prosody></speak>",
+      "reportId": "550e8400-e29b-41d4-a716-446655440000",
+      "areaName": "Viking",
+      "isPhantom": false,
+      "characterCount": 287,
+      "createdAt": "2026-02-01T15:30:00Z"
+    },
+    {
+      "ssml": "<speak><prosody rate=\"0.9\" pitch=\"-12%\"><prosody pitch=\"+0%\"><emphasis level=\"strong\">The Void.</emphasis><break time=\"800ms\"/></prosody>Southwesterly<break time=\"200ms\"/>force 6.<break time=\"600ms\"/><prosody pitch=\"-12%\">Moderate.<break time=\"600ms\"/>Fog.<break time=\"600ms\"/></prosody><prosody pitch=\"-6%\"><emphasis level=\"reduced\">Poor.</emphasis><break time=\"1500ms\"/></prosody></prosody></speak>",
+      "reportId": "b4c3d2e1-a0b1-c2d3-e4f5-a6b7c8d9e0f1",
+      "areaName": "The Void",
+      "isPhantom": true,
+      "characterCount": 342,
+      "createdAt": "2026-02-01T15:31:00Z"
+    }
+  ]
+}

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Realistic Audio Library</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #00ff00;
+    }
+    button {
+      background: #003300;
+      color: #00ff00;
+      border: 2px solid #00ff00;
+      padding: 15px 30px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+      font-family: 'Courier New', monospace;
+    }
+    button:hover {
+      background: #004400;
+    }
+    #output {
+      margin-top: 30px;
+      padding: 20px;
+      background: #000;
+      border: 1px solid #00ff00;
+      min-height: 200px;
+      white-space: pre-wrap;
+    }
+    .test-section {
+      margin: 30px 0;
+      padding: 20px;
+      border: 1px solid #004400;
+    }
+    h2 {
+      color: #00ff00;
+      border-bottom: 2px solid #00ff00;
+      padding-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎙️ Realistic Audio Library Test</h1>
+
+  <div class="test-section">
+    <h2>Component Tests</h2>
+    <button onclick="testBasicArea()">Test: Area Name</button>
+    <button onclick="testCompoundForce()">Test: Compound Force (5 or 6)</button>
+    <button onclick="testWindModifier()">Test: Wind + Modifier</button>
+    <button onclick="testPressure()">Test: Pressure Condition</button>
+  </div>
+
+  <div class="test-section">
+    <h2>Full Reports</h2>
+    <button onclick="testSimpleReport()">Test: Simple Report</button>
+    <button onclick="testEnhancedReport()">Test: Enhanced Report</button>
+    <button onclick="testFullBBCReport()">Test: Full BBC-Style Report</button>
+  </div>
+
+  <div id="output">Ready to test audio library...</div>
+
+  <script type="module">
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const output = document.getElementById('output');
+
+    function log(message) {
+      output.textContent += message + '\n';
+      output.scrollTop = output.scrollHeight;
+    }
+
+    async function playAudioSequence(paths) {
+      log('\n🎵 Playing sequence:');
+      log(paths.map(p => '  - ' + p.split('/').pop()).join('\n'));
+
+      let currentTime = audioContext.currentTime;
+      const sources = [];
+
+      for (const path of paths) {
+        try {
+          const response = await fetch(path);
+          if (!response.ok) {
+            log(`❌ Failed to load: ${path}`);
+            continue;
+          }
+
+          const arrayBuffer = await response.arrayBuffer();
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+          const source = audioContext.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(audioContext.destination);
+          source.start(currentTime);
+
+          currentTime += audioBuffer.duration;
+          sources.push(source);
+        } catch (error) {
+          log(`❌ Error: ${error.message}`);
+        }
+      }
+
+      log(`✅ Queued ${sources.length} audio files\n`);
+    }
+
+    // Test functions
+    window.testBasicArea = async () => {
+      log('\n=== Testing: Area Name ===');
+      await playAudioSequence(['/public/audio/areas/viking.mp3']);
+    };
+
+    window.testCompoundForce = async () => {
+      log('\n=== Testing: Compound Force ===');
+      await playAudioSequence([
+        '/public/audio/wind/directions/southwesterly.mp3',
+        '/public/audio/numbers/5.mp3',
+        '/public/audio/connectors/or.mp3',
+        '/public/audio/numbers/6.mp3'
+      ]);
+    };
+
+    window.testWindModifier = async () => {
+      log('\n=== Testing: Wind + Modifier + Timing ===');
+      await playAudioSequence([
+        '/public/audio/wind/directions/northerly.mp3',
+        '/public/audio/wind/forces/force-7.mp3',
+        '/public/audio/wind/modifiers/increasing.mp3',
+        '/public/audio/timing/later.mp3'
+      ]);
+    };
+
+    window.testPressure = async () => {
+      log('\n=== Testing: Pressure Condition ===');
+      await playAudioSequence([
+        '/public/audio/pressure/pressure-falling-slowly.mp3'
+      ]);
+    };
+
+    window.testSimpleReport = async () => {
+      log('\n=== Testing: Simple Report ===');
+      log('Viking. Southwesterly, force 7. Rough. Rain. Good.');
+      await playAudioSequence([
+        '/public/audio/areas/viking.mp3',
+        '/public/audio/pauses/short-500ms.mp3',
+        '/public/audio/wind/directions/southwesterly.mp3',
+        '/public/audio/wind/forces/force-7.mp3',
+        '/public/audio/sea/rough.mp3',
+        '/public/audio/weather/rain.mp3',
+        '/public/audio/visibility/good.mp3',
+        '/public/audio/pauses/long-1000ms.mp3'
+      ]);
+    };
+
+    window.testEnhancedReport = async () => {
+      log('\n=== Testing: Enhanced Report ===');
+      log('Dogger. Southwesterly 5 to 7, increasing later. Rough at first, moderate swell. Rain. Good.');
+      await playAudioSequence([
+        '/public/audio/areas/dogger.mp3',
+        '/public/audio/pauses/short-500ms.mp3',
+        '/public/audio/wind/directions/southwesterly.mp3',
+        '/public/audio/numbers/5.mp3',
+        '/public/audio/connectors/to.mp3',
+        '/public/audio/numbers/7.mp3',
+        '/public/audio/wind/modifiers/increasing.mp3',
+        '/public/audio/timing/later.mp3',
+        '/public/audio/sea/rough.mp3',
+        '/public/audio/timing/at-first.mp3',
+        '/public/audio/waves/moderate-swell.mp3',
+        '/public/audio/weather/rain.mp3',
+        '/public/audio/visibility/good.mp3',
+        '/public/audio/pauses/long-1000ms.mp3'
+      ]);
+    };
+
+    window.testFullBBCReport = async () => {
+      log('\n=== Testing: Full BBC-Style Report ===');
+      log('Forties. Variable 4 or 5, becoming southwesterly, increasing later. Slight at first. Rain for a time. Good. Pressure falling.');
+      await playAudioSequence([
+        '/public/audio/areas/forties.mp3',
+        '/public/audio/pauses/short-500ms.mp3',
+        '/public/audio/wind/directions/variable.mp3',
+        '/public/audio/numbers/4.mp3',
+        '/public/audio/connectors/or.mp3',
+        '/public/audio/numbers/5.mp3',
+        '/public/audio/wind/modifiers/becoming.mp3',
+        '/public/audio/wind/directions/southwesterly.mp3',
+        '/public/audio/wind/modifiers/increasing.mp3',
+        '/public/audio/timing/later.mp3',
+        '/public/audio/sea/slight.mp3',
+        '/public/audio/timing/at-first.mp3',
+        '/public/audio/weather/rain.mp3',
+        '/public/audio/timing/for-a-time.mp3',
+        '/public/audio/visibility/good.mp3',
+        '/public/audio/pressure/pressure-falling.mp3',
+        '/public/audio/pauses/long-1000ms.mp3'
+      ]);
+    };
+
+    log('✅ Audio test page loaded');
+    log('📁 Audio files loaded from: /public/audio/');
+    log('🎧 Click buttons above to test different elements\n');
+  </script>
+</body>
+</html>

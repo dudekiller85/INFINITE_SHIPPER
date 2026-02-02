@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.specify/scripts/bash/setup-plan.sh:*)",
+      "Bash(node generate-audio-library.js:*)",
+      "Bash(brew:*)",
+      "Bash(git fetch:*)",
+      "Bash(.specify/scripts/bash/create-new-feature.sh:*)",
+      "WebFetch(domain:docs.cloud.google.com)",
+      "WebFetch(domain:www.w3.org)",
+      "WebFetch(domain:caniuse.com)",
+      "WebFetch(domain:elevenlabs.io)",
+      "WebFetch(domain:github.com)",
+      "Bash(curl:*)",
+      "Bash(bash:*)",
+      "Bash(test:*)",
+      "Bash(wc:*)",
+      "Bash(npm test:*)",
+      "Bash(npm install:*)",
+      "Bash(NODE_OPTIONS=--experimental-vm-modules npx jest:*)",
+      "Bash(open:*)",
+      "Bash(node:*)",
+      "Bash(pkill:*)",
+      "Bash(ls:*)",
+      "Bash(tree:*)",
+      "WebFetch(domain:www.bbc.co.uk)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "Bash(.specify/scripts/bash/update-agent-context.sh:*)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(if [ -d \"/Users/petemyall/INFINITE_SHIPPER/specs/003-broadcast-structure/checklists\" ])",
+      "Bash(then ls -la /Users/petemyall/INFINITE_SHIPPER/specs/003-broadcast-structure/checklists/)",
+      "Bash(else echo \"No checklists directory found\")",
+      "Bash(fi)",
+      "Bash(if [ -f \".prettierignore\" ])",
+      "Bash(then echo \"=== .prettierignore exists ===\")",
+      "Bash(else echo \"=== .prettierignore missing ===\")",
+      "Bash(then ls -la \"/Users/petemyall/INFINITE_SHIPPER/specs/003-broadcast-structure/checklists\")",
+      "Bash(else echo \"No checklists directory\")"
+    ]
+  }
+}

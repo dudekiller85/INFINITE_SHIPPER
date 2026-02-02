@@ -1,0 +1,149 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SSML Broadcast Structure",
+  "description": "Complete SSML document structure for shipping forecast broadcast synthesis via Google Cloud TTS",
+  "type": "object",
+  "required": ["ssml", "reportId", "characterCount", "createdAt"],
+  "properties": {
+    "ssml": {
+      "type": "string",
+      "description": "Complete SSML document with all broadcast segments wrapped in <speak> tags",
+      "minLength": 100,
+      "maxLength": 5000,
+      "pattern": "^<speak>.*</speak>$",
+      "examples": [
+        "<speak><prosody rate=\"85%\">And now the shipping forecast, issued by the Met Office on behalf of the Maritime and Coastguard Agency at zero five thirty on Tuesday the second of February.<break time=\"1500ms\"/>Gale warnings. Viking, southwesterly gale force 8.<break time=\"1000ms\"/>And now the area forecasts for the next 24 hours.<break time=\"800ms\"/><emphasis level=\"strong\">Viking</emphasis><break time=\"800ms\"/>Southwesterly 8.<break time=\"600ms\"/>Rough or very rough.<break time=\"600ms\"/>Rain.<break time=\"600ms\"/>Good.<break time=\"1500ms\"/></prosody></speak>"
+      ]
+    },
+    "reportId": {
+      "type": "string",
+      "description": "Unique broadcast identifier following pattern broadcast-[8 hex chars]",
+      "pattern": "^broadcast-[0-9a-f]{8}$",
+      "examples": ["broadcast-a3f2c8d1", "broadcast-7b4e9c05"]
+    },
+    "characterCount": {
+      "type": "integer",
+      "description": "Total SSML character count including tags (must stay under 5000 for Google Cloud TTS)",
+      "minimum": 100,
+      "maximum": 5000,
+      "examples": [1847, 4523, 3201]
+    },
+    "createdAt": {
+      "type": "integer",
+      "description": "Unix timestamp (milliseconds) of broadcast generation",
+      "minimum": 0,
+      "examples": [1706856330000, 1706942730000]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional metadata about broadcast structure and variant selection",
+      "properties": {
+        "hasGaleWarnings": {
+          "type": "boolean",
+          "description": "Whether gale warnings segment is present (true if any area has force 8+ winds)",
+          "examples": [true, false]
+        },
+        "introductionVariant": {
+          "type": "string",
+          "description": "ID of introduction variant used (e.g., 'std-001' for standard, 'sur-003' for surreal)",
+          "pattern": "^(std|sur)-[0-9]{3}$",
+          "examples": ["std-001", "sur-003", "std-012"]
+        },
+        "galeWarningVariant": {
+          "type": "string",
+          "description": "ID of gale warning variant used (null if no gale warnings). Includes format type prefix.",
+          "pattern": "^gale-(std|inv)-[0-9]{3}$",
+          "examples": ["gale-std-001", "gale-inv-005", null]
+        },
+        "timePeriodVariant": {
+          "type": "string",
+          "description": "ID of time period variant used",
+          "pattern": "^tp-[0-9]{3}$",
+          "examples": ["tp-001", "tp-014", "tp-007"]
+        },
+        "galeCount": {
+          "type": "integer",
+          "description": "Number of areas with gale force winds (force 8+)",
+          "minimum": 0,
+          "maximum": 38,
+          "examples": [0, 3, 1]
+        },
+        "areaCount": {
+          "type": "integer",
+          "description": "Number of shipping areas included in broadcast",
+          "minimum": 1,
+          "maximum": 38,
+          "examples": [31, 38, 25]
+        },
+        "segments": {
+          "type": "object",
+          "description": "Character count breakdown by segment",
+          "properties": {
+            "introduction": {
+              "type": "integer",
+              "description": "Character count for introduction segment",
+              "minimum": 0
+            },
+            "galeWarnings": {
+              "type": "integer",
+              "description": "Character count for gale warnings segment (0 if not present)",
+              "minimum": 0
+            },
+            "timePeriod": {
+              "type": "integer",
+              "description": "Character count for time period segment",
+              "minimum": 0
+            },
+            "areaForecasts": {
+              "type": "integer",
+              "description": "Character count for all area forecasts",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "ssml": "<speak><prosody rate=\"85%\">And now the shipping forecast, issued by the Met Office on behalf of the Maritime and Coastguard Agency at zero five thirty on Tuesday the second of February.<break time=\"1500ms\"/>And now the area forecasts for the next 24 hours.<break time=\"800ms\"/><emphasis level=\"strong\">Viking</emphasis><break time=\"800ms\"/>Southwesterly 5.<break time=\"600ms\"/>Moderate or rough.<break time=\"600ms\"/>Fair.<break time=\"600ms\"/>Good.<break time=\"1500ms\"/></prosody></speak>",
+      "reportId": "broadcast-a3f2c8d1",
+      "characterCount": 487,
+      "createdAt": 1706856330000,
+      "metadata": {
+        "hasGaleWarnings": false,
+        "introductionVariant": "std-001",
+        "galeWarningVariant": null,
+        "timePeriodVariant": "tp-001",
+        "galeCount": 0,
+        "areaCount": 1,
+        "segments": {
+          "introduction": 234,
+          "galeWarnings": 0,
+          "timePeriod": 108,
+          "areaForecasts": 145
+        }
+      }
+    },
+    {
+      "ssml": "<speak><prosody rate=\"85%\">And now the shipping forecast, issued by the Department of Quiet Waters at a time that may have passed on a day known to the tides.<break time=\"1500ms\"/>Gale warnings. Viking, southwesterly gale force 8. Forties, westerly gale force 9.<break time=\"1000ms\"/>And now the area forecasts valid until 0600 tomorrow.<break time=\"800ms\"/><emphasis level=\"strong\">Viking</emphasis><break time=\"800ms\"/>Southwesterly 8.<break time=\"600ms\"/>Rough or very rough.<break time=\"600ms\"/>Rain.<break time=\"600ms\"/>Good.<break time=\"1500ms\"/></prosody></speak>",
+      "reportId": "broadcast-7b4e9c05",
+      "characterCount": 612,
+      "createdAt": 1706942730000,
+      "metadata": {
+        "hasGaleWarnings": true,
+        "introductionVariant": "sur-003",
+        "galeWarningVariant": "gale-std-001",
+        "timePeriodVariant": "tp-002",
+        "galeCount": 2,
+        "areaCount": 1,
+        "segments": {
+          "introduction": 221,
+          "galeWarnings": 127,
+          "timePeriod": 119,
+          "areaForecasts": 145
+        }
+      }
+    }
+  ]
+}
