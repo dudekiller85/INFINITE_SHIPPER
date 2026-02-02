@@ -9,35 +9,23 @@
 </head>
 <body>
     <canvas id="background" aria-hidden="true"></canvas>
-
-    <div class="central-box">
-        <h1 class="forecast-header">The Infinite Shipping Forecast</h1>
-        <p class="forecast-subheader" id="forecast-subheader"></p>
-
-        <button id="begin-transmission" class="transmission-button">
-            BEGIN TRANSMISSION
-        </button>
-
+    
+    <div class="main-container">
         <div id="area-name" class="area-name"></div>
+        
+        <button id="begin-transmission" class="transmission-button">
+            Begin Transmission
+        </button>
+        
+        <canvas id="oscilloscope" class="oscilloscope" aria-label="Audio frequency visualization"></canvas>
     </div>
-
-    <button
-        id="motion-toggle"
-        class="motion-toggle active"
-        aria-label="Toggle motion effects"
-        aria-pressed="true"
-        title="Enable/disable animations">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
-        </svg>
-    </button>
-
+    
     <footer class="disclaimer">
         Not for navigation. Procedural art piece.
     </footer>
-
+    
     <div id="error-message" class="error-message" style="display: none;"></div>
-
+    
     <script type="module" src="/src/app.js"></script>
 </body>
 </html>

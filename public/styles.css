@@ -1,155 +1,385 @@
+/**
+ * Haunted Maritime UI Styles
+ * Feature: 004-haunted-maritime-ui
+ */
+
+/* ============================================
+   CSS CUSTOM PROPERTIES (Theme Contract)
+   ============================================ */
+
+:root {
+  /* Color Palette - Phosphor Green (Primary) */
+  --color-phosphor-green-dim: hsl(140, 60%, 30%);
+  --color-phosphor-green: hsl(140, 70%, 45%);
+  --color-phosphor-green-glow: hsl(140, 80%, 60%);
+
+  /* Color Palette - Oceanic Blue (Secondary) */
+  --color-oceanic-blue-dark: hsl(200, 50%, 20%);
+  --color-oceanic-blue: hsl(200, 60%, 35%);
+  --color-oceanic-blue-light: hsl(200, 70%, 50%);
+
+  /* Color Palette - Parchment Grey (Neutral) */
+  --color-parchment-grey-dark: hsl(45, 10%, 40%);
+  --color-parchment-grey: hsl(45, 15%, 70%);
+  --color-parchment-grey-light: hsl(45, 20%, 85%);
+
+  /* Semantic Color Mappings */
+  --color-primary: var(--color-phosphor-green);
+  --color-secondary: var(--color-oceanic-blue);
+  --color-neutral: var(--color-parchment-grey);
+  --color-accent: var(--color-phosphor-green-glow);
+  --color-background: hsl(200, 50%, 10%);
+  --color-text: var(--color-parchment-grey);
+  --color-text-dim: var(--color-parchment-grey-dark);
+
+  /* Typography */
+  --font-serif: 'Times New Roman', 'EB Garamond', Georgia, serif;
+  --font-size-header: 3rem;
+  --font-size-area: 2.5rem;
+  --font-size-button: 1.2rem;
+  --font-size-small: 0.75rem;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-bold: 700;
+  --letter-spacing-wide: 0.15em;
+  --letter-spacing-normal: 0.1em;
+  --letter-spacing-tight: 0.05em;
+
+  /* Animation Timing */
+  --oscillation-period: 10s;
+  --oscillation-easing: ease-in-out;
+  --fade-duration: 2s;
+  --fade-easing: ease-in-out;
+  --jitter-period: 0.8s;
+  --jitter-amplitude: 1px;
+  --toggle-transition: 0.2s;
+
+  /* Layout & Spacing */
+  --box-opacity: 0.5;
+  --box-backdrop-blur: 10px;
+  --box-padding: 3rem 4rem;
+  --box-border-radius: 8px;
+  --box-gap: 2rem;
+  --toggle-position-bottom: 1rem;
+  --toggle-position-right: 1rem;
+  --toggle-size: 3rem;
+
+  /* Z-Index Layers */
+  --z-background: 0;
+  --z-content: 1;
+  --z-controls: 100;
+  --z-error: 1000;
+
+  /* Responsive Breakpoint */
+  --breakpoint-mobile: 768px;
+}
+
+/* Motion Reduced Mode - System Preference */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --oscillation-period: 0s;
+    --fade-duration: 0.3s;
+    --jitter-period: 0s;
+  }
+}
+
+/* Motion Reduced Mode - Manual Toggle */
+body.motion-reduced {
+  --oscillation-period: 0s;
+  --fade-duration: 0.3s;
+  --jitter-period: 0s;
+}
+
+body.motion-reduced #background {
+  animation: none !important;
+  filter: none !important;
+}
+
+body.motion-reduced .area-name span {
+  animation: none !important;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: 'Georgia', serif;
-    background: #000;
-    color: #fff;
-    overflow: hidden;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  font-family: var(--font-serif);
+  background: var(--color-background);
+  color: var(--color-text);
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
+
+/* ============================================
+   BACKGROUND CANVAS
+   ============================================ */
 
 #background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-    filter: blur(0px) hue-rotate(0deg);
-    transition: filter 0.3s ease-out;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: var(--z-background);
+  will-change: filter;
+  animation: woozy-oscillate var(--oscillation-period) var(--oscillation-easing) infinite;
 }
 
-.main-container {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2rem;
+@keyframes woozy-oscillate {
+  0%, 100% {
+    filter: hue-rotate(0deg) blur(0px);
+  }
+  50% {
+    filter: hue-rotate(15deg) blur(2px);
+  }
 }
 
-.area-name {
-    font-size: 2.5rem;
-    font-weight: 300;
-    letter-spacing: 0.15em;
-    opacity: 0.6;
-    text-transform: uppercase;
-    min-height: 3.5rem;
-    text-align: center;
-    transition: opacity 0.5s ease-in-out;
+/* ============================================
+   CENTRAL DISPLAY BOX
+   ============================================ */
+
+.central-box {
+  position: relative;
+  z-index: var(--z-content);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--box-gap);
+  padding: var(--box-padding);
+  margin: 2rem;
+  border-radius: var(--box-border-radius);
+  background: rgba(26, 77, 102, var(--box-opacity)); /* Oceanic blue dark with opacity */
+  border: 1px solid var(--color-phosphor-green-dim);
+  box-shadow:
+    0 0 20px rgba(26, 138, 26, 0.3),
+    0 0 40px rgba(26, 138, 26, 0.2),
+    inset 0 0 30px rgba(26, 138, 26, 0.05);
 }
+
+@supports (backdrop-filter: blur(10px)) {
+  .central-box {
+    backdrop-filter: blur(var(--box-backdrop-blur));
+  }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.forecast-header {
+  font-family: var(--font-serif);
+  font-size: var(--font-size-header);
+  font-weight: var(--font-weight-light);
+  color: var(--color-text);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+  text-align: center;
+  margin: 0;
+}
+
+.forecast-subheader {
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-light);
+  color: var(--color-phosphor-green);
+  letter-spacing: var(--letter-spacing-normal);
+  font-style: italic;
+  text-align: center;
+  margin: 0.5rem 0 0 0;
+  opacity: 0.8;
+}
+
+/* ============================================
+   BUTTON
+   ============================================ */
 
 .transmission-button {
-    font-family: inherit;
-    font-size: 1.2rem;
-    letter-spacing: 0.1em;
-    padding: 1rem 3rem;
-    background: transparent;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    color: #fff;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
+  font-family: var(--font-serif);
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-normal);
+  letter-spacing: var(--letter-spacing-normal);
+  padding: 1rem 3rem;
+  background: transparent;
+  border: 2px solid var(--color-text);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
 }
 
 .transmission-button:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-accent);
 }
 
 .transmission-button:active {
-    transform: scale(0.98);
+  transform: scale(0.98);
 }
 
 .transmission-button.active {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 1);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 20px var(--color-accent);
 }
 
-.oscilloscope {
-    width: 600px;
-    height: 100px;
-    border: 1px solid rgba(0, 255, 0, 0.3);
-    background: rgba(0, 0, 0, 0.5);
+/* ============================================
+   AREA NAME DISPLAY
+   ============================================ */
+
+.area-name {
+  font-family: var(--font-serif);
+  font-size: var(--font-size-area);
+  font-weight: var(--font-weight-light);
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text);
+  opacity: 0;
+  text-transform: uppercase;
+  min-height: 3.5rem;
+  text-align: center;
+  transition: opacity var(--fade-duration) var(--fade-easing);
 }
+
+.area-name.visible {
+  opacity: 1;
+}
+
+.area-name span {
+  display: inline-block;
+  animation: text-jitter var(--jitter-period) ease-in-out infinite;
+}
+
+@keyframes text-jitter {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(1px, -1px); }
+  50% { transform: translate(-1px, 1px); }
+  75% { transform: translate(1px, 1px); }
+}
+
+/* ============================================
+   MOTION TOGGLE BUTTON
+   ============================================ */
+
+.motion-toggle {
+  position: fixed;
+  bottom: var(--toggle-position-bottom);
+  right: var(--toggle-position-right);
+  z-index: var(--z-controls);
+  width: var(--toggle-size);
+  height: var(--toggle-size);
+  background: var(--color-oceanic-blue-dark);
+  border: 2px solid var(--color-text);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--toggle-transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.motion-toggle:hover {
+  background: var(--color-oceanic-blue);
+  border-color: var(--color-accent);
+}
+
+.motion-toggle.active {
+  background: var(--color-phosphor-green-dim);
+  border-color: var(--color-accent);
+}
+
+.motion-toggle svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: var(--color-text);
+}
+
+/* ============================================
+   DISCLAIMER
+   ============================================ */
 
 .disclaimer {
-    position: fixed;
-    bottom: 1rem;
-    right: 1rem;
-    font-size: 0.75rem;
-    opacity: 0.4;
-    letter-spacing: 0.05em;
-    z-index: 2;
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  font-size: var(--font-size-small);
+  color: var(--color-text-dim);
+  opacity: 0.4;
+  letter-spacing: var(--letter-spacing-tight);
+  z-index: var(--z-content);
 }
 
+/* ============================================
+   ERROR MESSAGES
+   ============================================ */
+
 .error-message {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(139, 0, 0, 0.95);
-    border: 2px solid #ff0000;
-    padding: 2rem;
-    max-width: 500px;
-    text-align: center;
-    z-index: 1000;
-    font-size: 1.1rem;
-    line-height: 1.6;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(139, 0, 0, 0.95);
+  border: 2px solid #ff0000;
+  padding: 2rem;
+  max-width: 500px;
+  text-align: center;
+  z-index: var(--z-error);
+  font-size: 1.1rem;
+  line-height: 1.6;
 }
 
 .error-message h2 {
-    margin-bottom: 1rem;
-    color: #ff6666;
+  margin-bottom: 1rem;
+  color: #ff6666;
 }
 
-/* CSS Animation Keyframes */
-@keyframes blur-oscillate {
-    0%, 100% { filter: blur(0px); }
-    50% { filter: blur(3px); }
+/* ============================================
+   OSCILLOSCOPE (if still needed)
+   ============================================ */
+
+.oscilloscope {
+  width: 600px;
+  height: 100px;
+  border: 1px solid var(--color-phosphor-green-dim);
+  background: rgba(0, 0, 0, 0.5);
 }
 
-@keyframes hue-rotate {
-    from { filter: hue-rotate(0deg); }
-    to { filter: hue-rotate(360deg); }
-}
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
 
-/* Applied dynamically via JavaScript */
-#background.animating {
-    animation: hue-rotate 60s linear infinite;
-}
-
-#background.blur-normal {
-    animation: blur-oscillate 10s ease-in-out infinite;
-}
-
-#background.blur-phantom {
-    filter: blur(10px) !important;
-    animation: none;
-}
-
-/* Responsive design */
 @media (max-width: 768px) {
-    .area-name {
-        font-size: 1.8rem;
-    }
-    
-    .oscilloscope {
-        width: 90vw;
-        max-width: 400px;
-    }
-    
-    .transmission-button {
-        font-size: 1rem;
-        padding: 0.8rem 2rem;
-    }
+  :root {
+    --font-size-header: 2rem;
+    --font-size-area: 1.8rem;
+    --font-size-button: 1rem;
+    --box-padding: 2rem 3rem;
+  }
+
+  .central-box {
+    margin: 1rem;
+  }
+
+  .forecast-subheader {
+    font-size: 0.75rem;
+  }
+
+  .oscilloscope {
+    width: 90vw;
+    max-width: 400px;
+  }
+
+  .transmission-button {
+    padding: 0.8rem 2rem;
+  }
 }

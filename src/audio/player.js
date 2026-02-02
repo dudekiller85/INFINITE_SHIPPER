@@ -20,6 +20,7 @@ export class AudioPlayer {
     this.currentReport = null;
     this.audioContext = null;
     this.radioFilter = null;
+    this.masterGain = null; // Master gain node for analysis tap
     this.playbackPromise = null;
     this.ssmlSynthesizer = null; // T030: SSML synthesizer for natural speech
     this.useSSML = true; // T030: Flag to enable SSML synthesis
@@ -37,6 +38,12 @@ export class AudioPlayer {
     if (!this.audioContext) {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       this.audioContext = new AudioContext();
+
+      // Create master gain node for analysis tap point
+      this.masterGain = this.audioContext.createGain();
+      this.masterGain.gain.value = 1.0;
+      this.masterGain.connect(this.audioContext.destination);
+
       // Radio filter disabled for clean audio
       // this.radioFilter = new RadioFilter(this.audioContext);
       // this.radioFilter.connectTo(this.audioContext.destination);
@@ -263,6 +270,12 @@ export class AudioPlayer {
         const audioUrl = URL.createObjectURL(generatedAudio.audioBlob);
         const audio = new Audio(audioUrl);
 
+        // Connect audio element to Web Audio API for visualization
+        if (this.masterGain) {
+          const source = this.audioContext.createMediaElementSource(audio);
+          source.connect(this.masterGain);
+        }
+
         // Play audio and wait for completion
         await new Promise((resolve, reject) => {
           audio.onended = () => {
@@ -400,6 +413,14 @@ export class AudioPlayer {
    */
   getAudioContext() {
     return this.audioContext;
+  }
+
+  /**
+   * Get master gain node (for audio analysis)
+   * @returns {GainNode}
+   */
+  getMasterGain() {
+    return this.masterGain;
   }
 
   /**

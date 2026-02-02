@@ -1,0 +1,155 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Georgia', serif;
+    background: #000;
+    color: #fff;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    filter: blur(0px) hue-rotate(0deg);
+    transition: filter 0.3s ease-out;
+}
+
+.main-container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.area-name {
+    font-size: 2.5rem;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    opacity: 0.6;
+    text-transform: uppercase;
+    min-height: 3.5rem;
+    text-align: center;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.transmission-button {
+    font-family: inherit;
+    font-size: 1.2rem;
+    letter-spacing: 0.1em;
+    padding: 1rem 3rem;
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+.transmission-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.transmission-button:active {
+    transform: scale(0.98);
+}
+
+.transmission-button.active {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.oscilloscope {
+    width: 600px;
+    height: 100px;
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.disclaimer {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    font-size: 0.75rem;
+    opacity: 0.4;
+    letter-spacing: 0.05em;
+    z-index: 2;
+}
+
+.error-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(139, 0, 0, 0.95);
+    border: 2px solid #ff0000;
+    padding: 2rem;
+    max-width: 500px;
+    text-align: center;
+    z-index: 1000;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.error-message h2 {
+    margin-bottom: 1rem;
+    color: #ff6666;
+}
+
+/* CSS Animation Keyframes */
+@keyframes blur-oscillate {
+    0%, 100% { filter: blur(0px); }
+    50% { filter: blur(3px); }
+}
+
+@keyframes hue-rotate {
+    from { filter: hue-rotate(0deg); }
+    to { filter: hue-rotate(360deg); }
+}
+
+/* Applied dynamically via JavaScript */
+#background.animating {
+    animation: hue-rotate 60s linear infinite;
+}
+
+#background.blur-normal {
+    animation: blur-oscillate 10s ease-in-out infinite;
+}
+
+#background.blur-phantom {
+    filter: blur(10px) !important;
+    animation: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .area-name {
+        font-size: 1.8rem;
+    }
+    
+    .oscilloscope {
+        width: 90vw;
+        max-width: 400px;
+    }
+    
+    .transmission-button {
+        font-size: 1rem;
+        padding: 0.8rem 2rem;
+    }
+}

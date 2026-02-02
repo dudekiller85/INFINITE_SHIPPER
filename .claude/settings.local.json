@@ -35,7 +35,8 @@
       "Bash(then echo \"=== .prettierignore exists ===\")",
       "Bash(else echo \"=== .prettierignore missing ===\")",
       "Bash(then ls -la \"/Users/petemyall/INFINITE_SHIPPER/specs/003-broadcast-structure/checklists\")",
-      "Bash(else echo \"No checklists directory\")"
+      "Bash(else echo \"No checklists directory\")",
+      "Bash(npm --version:*)"
     ]
   }
 }

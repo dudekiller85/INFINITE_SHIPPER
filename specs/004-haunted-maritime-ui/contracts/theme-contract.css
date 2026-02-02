@@ -1,0 +1,153 @@
+/**
+ * Theme Contract: Haunted Maritime UI
+ *
+ * This file defines the CSS custom property contract for the visual theme.
+ * All components MUST reference these variables instead of hardcoded values.
+ *
+ * DO NOT modify these values without updating data-model.md
+ */
+
+:root {
+  /* ============================================
+     COLOR PALETTE
+     ============================================ */
+
+  /* Phosphor Green (Primary - CRT aesthetic) */
+  --color-phosphor-green-dim: hsl(140, 60%, 30%);       /* #1a8a1a - backgrounds */
+  --color-phosphor-green: hsl(140, 70%, 45%);           /* #26d926 - main color */
+  --color-phosphor-green-glow: hsl(140, 80%, 60%);      /* #33ff33 - highlights */
+
+  /* Oceanic Blue (Secondary - maritime) */
+  --color-oceanic-blue-dark: hsl(200, 50%, 20%);        /* #1a4d66 - dark backgrounds */
+  --color-oceanic-blue: hsl(200, 60%, 35%);             /* #2480a6 - main color */
+  --color-oceanic-blue-light: hsl(200, 70%, 50%);       /* #268cbf - accents */
+
+  /* Parchment Grey (Neutral - aged paper) */
+  --color-parchment-grey-dark: hsl(45, 10%, 40%);       /* #706d66 - text */
+  --color-parchment-grey: hsl(45, 15%, 70%);            /* #bfb8a6 - main neutral */
+  --color-parchment-grey-light: hsl(45, 20%, 85%);      /* #ddd9cc - light backgrounds */
+
+  /* Semantic Color Mappings */
+  --color-primary: var(--color-phosphor-green);
+  --color-secondary: var(--color-oceanic-blue);
+  --color-neutral: var(--color-parchment-grey);
+  --color-accent: var(--color-phosphor-green-glow);
+
+  /* Background & Text */
+  --color-background: hsl(200, 50%, 10%);               /* Very dark oceanic blue */
+  --color-text: var(--color-parchment-grey);
+  --color-text-dim: var(--color-parchment-grey-dark);
+
+  /* ============================================
+     TYPOGRAPHY
+     ============================================ */
+
+  --font-serif: 'Times New Roman', 'EB Garamond', Georgia, serif;
+
+  /* Font Sizes */
+  --font-size-header: 3rem;           /* Central box header */
+  --font-size-area: 2.5rem;           /* Area name display */
+  --font-size-button: 1.2rem;         /* BEGIN TRANSMISSION button */
+  --font-size-small: 0.75rem;         /* Disclaimer text */
+
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-bold: 700;
+
+  /* Letter Spacing */
+  --letter-spacing-wide: 0.15em;      /* Header */
+  --letter-spacing-normal: 0.1em;     /* Button */
+  --letter-spacing-tight: 0.05em;     /* Disclaimer */
+
+  /* ============================================
+     ANIMATION TIMING
+     ============================================ */
+
+  /* Oscillation (hue-rotate + blur) */
+  --oscillation-period: 10s;          /* 8-12 seconds per spec */
+  --oscillation-easing: ease-in-out;
+
+  /* Area Name Fade */
+  --fade-duration: 2s;                /* 1-3 seconds per spec */
+  --fade-easing: ease-in-out;
+
+  /* Text Jitter */
+  --jitter-period: 0.8s;
+  --jitter-amplitude: 1px;            /* Max displacement */
+
+  /* Motion Toggle Response */
+  --toggle-transition: 0.2s;          /* Must be < 200ms per spec */
+
+  /* ============================================
+     LAYOUT & SPACING
+     ============================================ */
+
+  /* Central Display Box */
+  --box-opacity: 0.5;                 /* 50% per clarification */
+  --box-backdrop-blur: 10px;
+  --box-padding: 3rem 4rem;
+  --box-border-radius: 8px;
+  --box-gap: 2rem;                    /* Spacing between header and button */
+
+  /* Motion Toggle (lower right corner) */
+  --toggle-position-bottom: 1rem;
+  --toggle-position-right: 1rem;
+  --toggle-size: 3rem;
+
+  /* ============================================
+     Z-INDEX LAYERS
+     ============================================ */
+
+  --z-background: 0;                  /* Canvas background */
+  --z-content: 1;                     /* Central box, area name */
+  --z-controls: 100;                  /* Motion toggle */
+  --z-error: 1000;                    /* Error messages */
+
+  /* ============================================
+     RESPONSIVE BREAKPOINTS
+     ============================================ */
+
+  --breakpoint-mobile: 768px;
+}
+
+/* ============================================
+   MOTION REDUCED MODE OVERRIDES
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --oscillation-period: 0s;         /* Disable oscillation */
+    --fade-duration: 0.3s;            /* Faster, less distracting fades */
+    --jitter-period: 0s;              /* Disable jitter */
+  }
+}
+
+/* Manual motion toggle (via class on body) */
+body.motion-reduced {
+  --oscillation-period: 0s;
+  --fade-duration: 0.3s;
+  --jitter-period: 0s;
+}
+
+/* ============================================
+   USAGE CONSTRAINTS
+   ============================================ */
+
+/**
+ * ENFORCEMENT RULES:
+ *
+ * 1. All color values MUST use var(--color-*) references
+ * 2. All timing values MUST use var(*-duration) or var(*-period)
+ * 3. All typography MUST use var(--font-*) references
+ * 4. No hardcoded hex/rgb colors allowed (except in this file)
+ * 5. No hardcoded animation durations (except in this file)
+ *
+ * VALIDATION:
+ * - Run `grep -r "#[0-9a-fA-F]" public/styles.css` should return ZERO matches
+ * - Run `grep -r "animation:.*[0-9]s" public/styles.css` should reference CSS variables
+ *
+ * TESTING:
+ * - Visual inspection against color palette reference
+ * - DevTools computed styles verification
+ */

@@ -5,6 +5,8 @@ Auto-generated from all feature plans. Last updated: 2026-02-01
 ## Active Technologies
 - JavaScript ES6+ (browser-based, Node.js 18+ for tooling) + Google Cloud TTS API (en-GB-Neural2-B voice), SSML template builder, weather generator (003-broadcast-structure)
 - N/A (ephemeral generation only) (003-broadcast-structure)
+- JavaScript ES6+ (browser-based), Node.js 18+ for tooling + Vanilla JS (no frameworks), CSS3 animations and filters, Canvas 2D API (004-haunted-maritime-ui)
+- Browser localStorage for motion preference persistence (client-side only) (004-haunted-maritime-ui)
 
 - JavaScript ES6+ (browser-based, Node.js 18+ for tooling) (002-natural-speech-generation)
 
@@ -25,6 +27,7 @@ npm test && npm run lint
 JavaScript ES6+ (browser-based, Node.js 18+ for tooling): Follow standard conventions
 
 ## Recent Changes
+- 004-haunted-maritime-ui: Added JavaScript ES6+ (browser-based), Node.js 18+ for tooling + Vanilla JS (no frameworks), CSS3 animations and filters, Canvas 2D API
 - 003-broadcast-structure: Added JavaScript ES6+ (browser-based, Node.js 18+ for tooling) + Google Cloud TTS API (en-GB-Neural2-B voice), SSML template builder, weather generator
 
 - 002-natural-speech-generation: Added JavaScript ES6+ (browser-based, Node.js 18+ for tooling)

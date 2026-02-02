@@ -10,11 +10,13 @@ import { globalEventBus } from './state/events.js';
 import { BackgroundCanvas } from './visuals/background.js';
 import { Oscilloscope } from './visuals/oscilloscope.js';
 import { VisualEffects } from './visuals/effects.js';
+import { MotionController } from './visuals/motion-toggle.js';
 
 // Visual components
 let backgroundCanvas = null;
 let oscilloscope = null;
 let visualEffects = null;
+let motionController = null;
 
 /**
  * Display error message to user
@@ -38,6 +40,58 @@ function hideError() {
 }
 
 /**
+ * Display area name with per-character jitter animation
+ * @param {string} areaName - The name of the shipping area
+ * @param {HTMLElement} container - The container element for the area name
+ */
+function displayAreaName(areaName, container) {
+  // Clear previous content
+  container.innerHTML = '';
+  container.classList.remove('visible');
+
+  // Wrap each character in a span with random animation delay
+  for (const char of areaName) {
+    const span = document.createElement('span');
+    span.textContent = char;
+    // Randomized delay (0-0.5s) for staggered jitter start
+    span.style.animationDelay = `${Math.random() * 0.5}s`;
+    container.appendChild(span);
+  }
+
+  // Trigger fade-in after a brief delay (allow DOM update)
+  requestAnimationFrame(() => {
+    container.classList.add('visible');
+  });
+}
+
+/**
+ * Set random subheader text
+ */
+function setRandomSubheader() {
+  const subheaders = [
+    'A Low-Frequency Liturgy for the Obsidian Deep',
+    'Continuous Observations from the Thermal End',
+    'Visibility: Zero. Duration: Indefinite',
+    'Isobaric Chants for the Unshriven Coast',
+    'Atmospheric Drift within the Five-Kilometer Limit',
+    'A Standard Frequency for the Event Horizon',
+    'Navigational Warnings from the Post-Stellar Reach',
+    'Steady Observations for the Final Sea State',
+    'The 50Hz Requiem for a Ghost Latitude',
+    'Veering Slowly Toward the Maximum Entropy',
+    'Automated Surveillance of the Obsidian Drift',
+    'A Metric Litany for the Last Lighthouse',
+    'Synchronized Static for the Post-Human Reach',
+  ];
+
+  const subheaderElement = document.getElementById('forecast-subheader');
+  if (subheaderElement) {
+    const randomIndex = Math.floor(Math.random() * subheaders.length);
+    subheaderElement.textContent = subheaders[randomIndex];
+  }
+}
+
+/**
  * Initialize the application
  */
 async function initialize() {
@@ -52,12 +106,27 @@ async function initialize() {
     return false;
   }
 
+  // Set random subheader
+  setRandomSubheader();
+
   // Initialize visual components
   const bgCanvas = document.getElementById('background');
   if (bgCanvas) {
     backgroundCanvas = new BackgroundCanvas(bgCanvas);
     backgroundCanvas.initBackground();
     visualEffects = new VisualEffects(backgroundCanvas);
+  }
+
+  // Initialize motion controller
+  motionController = new MotionController();
+  motionController.initialize();
+
+  // Wire motion toggle button
+  const motionToggleButton = document.getElementById('motion-toggle');
+  if (motionToggleButton) {
+    motionToggleButton.addEventListener('click', () => {
+      motionController.toggle();
+    });
   }
 
   hideError();
@@ -81,7 +150,7 @@ function setupUI() {
     if (sessionState.isPlaying) {
       // Stop playback
       await audioPlayer.stop();
-      button.textContent = 'Begin Transmission';
+      button.textContent = 'BEGIN TRANSMISSION';
       button.classList.remove('active');
 
       // Stop visual effects
@@ -89,11 +158,16 @@ function setupUI() {
         visualEffects.stop();
       }
 
+      // Disconnect background canvas audio
+      if (backgroundCanvas) {
+        backgroundCanvas.disconnectAudio();
+      }
+
       // Stop oscilloscope
       if (oscilloscope) {
         oscilloscope.stop();
       }
-      
+
       // Clear area name
       if (areaNameDiv) {
         areaNameDiv.textContent = '';
@@ -102,7 +176,7 @@ function setupUI() {
       // Start playback
       try {
         await audioPlayer.start();
-        button.textContent = 'End Transmission';
+        button.textContent = 'END TRANSMISSION';
         button.classList.add('active');
 
         // Start visual effects
@@ -110,12 +184,22 @@ function setupUI() {
           visualEffects.start();
         }
 
+        // Connect background canvas to audio for reactive visualization
+        if (backgroundCanvas) {
+          const audioContext = audioPlayer.getAudioContext();
+          const masterGain = audioPlayer.getMasterGain();
+          if (masterGain && audioContext) {
+            console.log('[App] Connecting background canvas to master gain node');
+            backgroundCanvas.connectAudio(masterGain, audioContext);
+          }
+        }
+
         // Start oscilloscope
         const oscCanvas = document.getElementById('oscilloscope');
         if (oscCanvas && !oscilloscope) {
           const audioContext = audioPlayer.getAudioContext();
           oscilloscope = new Oscilloscope(oscCanvas, audioContext);
-          
+
           // Connect to audio output for visualization
           const radioFilter = audioPlayer.getRadioFilter();
           if (radioFilter) {
@@ -137,15 +221,14 @@ function setupUI() {
   // Listen for report events to update area name display
   globalEventBus.on('report:playing', (report) => {
     if (areaNameDiv && report && report.area) {
-      areaNameDiv.textContent = report.area.name;
-      areaNameDiv.style.opacity = '1';
+      displayAreaName(report.area.name, areaNameDiv);
     }
   });
 
   globalEventBus.on('report:complete', () => {
     if (areaNameDiv) {
       // Fade out after report completes
-      areaNameDiv.style.opacity = '0.6';
+      areaNameDiv.classList.remove('visible');
     }
   });
 }

@@ -2,7 +2,7 @@
 
 **Feature Branch**: `003-broadcast-structure`
 **Created**: 2 February 2026
-**Updated**: 2 February 2026
+**Updated**: 2 February 2026 (Added continuous looping requirement)
 **Status**: Draft
 **Input**: Update broadcast structure to strictly follow EBNF grammar (src/shipping-forecast.ebnf) with general synopsis, precipitation, icing, and Beaufort scale formatting, while preserving uncanny features (alternative intros, phantom areas)
 
@@ -32,6 +32,24 @@ As a listener, I want the forecast to follow the complete EBNF structure includi
 2. **Given** an EBNF-compliant broadcast, **When** compared to the grammar file, **Then** all segments match their corresponding production rules
 3. **Given** multiple broadcasts are generated, **When** analyzed for structure, **Then** 100% follow the complete EBNF format
 4. **Given** 50 broadcasts are generated, **When** introduction variants are analyzed, **Then** at least 20 different variants are used, including both standard Met Office format and surreal variations (preserving uncanny features)
+
+---
+
+### User Story 1a - Experience Continuous Looping Broadcast (Priority: P1)
+
+As a listener, I want the broadcast to loop continuously after completing all 31 areas, restarting from gale warnings with newly randomized content, so that I can experience an infinite, never-repeating shipping forecast stream.
+
+**Why this priority**: Continuous looping is essential for the "infinite" nature of the art piece. The introduction plays once to establish context, then the forecast loops endlessly with fresh randomized content, creating a hypnotic, meditative experience that mimics real BBC Radio 4 broadcast patterns.
+
+**Independent Test**: Can be tested by starting playback and verifying that after 31 area forecasts complete, the system generates new gale warnings, general synopsis, time period, and area forecasts without repeating the introduction.
+
+**Acceptance Scenarios**:
+
+1. **Given** playback has started, **When** the first broadcast completes 31 area forecasts, **Then** a new gale warnings segment begins immediately with different content (no introduction)
+2. **Given** playback is looping, **When** each loop iteration completes, **Then** all content is regenerated with new random values (wind directions, precipitation, pressure systems, etc.)
+3. **Given** playback has looped 5 times, **When** broadcast structure is analyzed, **Then** introduction only appeared once at the start, and each loop contains Gale Warnings → General Synopsis → Time Period → 31 Areas
+4. **Given** continuous playback for 10 minutes, **When** timestamps in gale warnings are examined, **Then** they update to reflect current time with each loop iteration
+5. **Given** playback is looping, **When** transitioning between loop iterations, **Then** audio continues seamlessly without gaps, silence, or jarring transitions
 
 ---
 
@@ -86,6 +104,9 @@ As a listener, I want area forecasts to include precipitation type and modifiers
 - When 16+ areas have gales, the inverse format must list non-gale areas (which could be zero if all areas have gales - handle gracefully)
 - When phantom areas (The Void, Silence, etc.) are included, they should work within EBNF structure but may violate standard area list
 - When visibility uses compound forms ("Good, occasionally poor"), the capitalization must follow EBNF rules (initial capitalized, subsequent lowercase)
+- When broadcast loop restarts after 31 areas, introduction must NOT replay (only gale warnings onward)
+- When loop iteration generates new content, all randomized elements (wind, precipitation, pressure systems, timestamps) must differ from previous iteration
+- When transitioning between loop iterations, audio playback must continue seamlessly without silence gaps exceeding 500ms
 
 ## Requirements *(mandatory)*
 
@@ -176,6 +197,15 @@ As a listener, I want area forecasts to include precipitation type and modifiers
 - **FR-043**: System MUST apply appropriate pause timings between broadcast segments per SSML requirements
 - **FR-044**: System MUST ensure all broadcast segments synthesize as single continuous SSML document for natural flow
 
+**Continuous Playback Loop Requirements**
+
+- **FR-045**: System MUST loop continuously after completing all 31 area forecasts
+- **FR-046**: System MUST restart loop at Gale Warnings segment (skipping Introduction)
+- **FR-047**: System MUST regenerate all broadcast content with new randomized values on each loop iteration
+- **FR-048**: System MUST maintain seamless audio continuity between loop iterations without gaps or jarring transitions
+- **FR-049**: Each loop iteration MUST include: Gale Warnings (if applicable) → General Synopsis → Time Period → 31 Area Forecasts, then repeat
+- **FR-050**: Introduction MUST only play once at the start of playback session, not on subsequent loop iterations
+
 ### Key Entities
 
 - **Broadcast**: Complete audio sequence following EBNF production rule at line 65: Introduction → Gale Warnings (conditional) → General Synopsis → Area Forecasts, generated as single SSML synthesis request
@@ -259,10 +289,19 @@ As a listener, I want area forecasts to include precipitation type and modifiers
 - **SC-031**: Phantom areas maintain distinct prosody (pitch contours, timing) while following EBNF text structure
 - **SC-032a**: Time period announcement variants provide natural variety and don't disrupt broadcast flow (validated by listener continuity perception tests)
 
+**Continuous Looping**
+
+- **SC-034**: After completing 31 area forecasts, system begins new loop within 2 seconds starting at gale warnings
+- **SC-035**: Introduction appears exactly once at playback start across any number of loop iterations
+- **SC-036**: Each loop iteration generates fresh randomized content (0% exact duplication of previous loop)
+- **SC-037**: Across 5 consecutive loop iterations, gale warnings, general synopsis, time period announcements, and area forecast content all differ measurably
+- **SC-038**: Audio transitions between loop iterations are seamless with no gaps exceeding 500ms
+- **SC-039**: Timestamps in subsequent loop iterations update to reflect current time
+
 **Overall Quality**
 
-- **SC-032**: All broadcast segments maintain BBC Radio 4 cadence (85% speaking rate) as verified by audio analysis
-- **SC-033**: Generated forecasts are indistinguishable from real BBC Radio 4 shipping forecasts in blind listener tests (70%+ accuracy threshold)
+- **SC-040**: All broadcast segments maintain BBC Radio 4 cadence (85% speaking rate) as verified by audio analysis
+- **SC-041**: Generated forecasts are indistinguishable from real BBC Radio 4 shipping forecasts in blind listener tests (70%+ accuracy threshold)
 
 ## Example Output
 
@@ -308,6 +347,42 @@ Plymouth and Biscay. Southwest 6 to 7. Wintry showers. Moderate.
 Rockall. West storm 10. Heavy rain. Very poor. Moderate icing.
 ```
 
+### Continuous Looping Example
+
+**First Playback (includes Introduction)**:
+```
+And now the Shipping Forecast, issued by the Met Office on behalf of the Maritime and Coastguard Agency at 14:23 today.
+
+There are warnings of gales in Viking, Forties, and Fisher.
+
+The general synopsis:
+
+Low north of Viking 998, deepening slowly, expected west of Faeroes 992 by 18:00 tomorrow.
+
+The area forecasts for the next 24 hours:
+
+[31 area forecasts...]
+
+Sole. Southwest 4. Heavy rain. Good.
+```
+
+**Loop Iteration 2 (Introduction skipped, new content)**:
+```
+There are warnings of gales in Dogger, German Bight, and Humber.
+
+The general synopsis:
+
+High south of Shannon 1026, clearing quickly, expected north of Hebrides 1032 by 20:15 tomorrow.
+
+And now the area forecasts for the next 24 hours:
+
+[31 NEW area forecasts with different wind/precipitation/visibility...]
+
+Sole. North 7. Wintry showers. Moderate, becoming poor later.
+```
+
+**Loop Iteration 3 continues immediately with fresh randomized content...**
+
 ### Key Differences from Previous Version
 
 **ADDED (New EBNF Features)**:
@@ -349,3 +424,8 @@ Rockall. West storm 10. Heavy rain. Very poor. Moderate icing.
 - Validation against EBNF grammar can be automated to ensure 100% compliance during generation
 - General synopsis segment provides sufficient maritime context without requiring detailed meteorological calculations
 - Sea state descriptions (Calm, Smooth, Slight, Moderate, Rough, Very rough, High, Very high) are excluded to maintain strict EBNF compliance as they are not part of the EBNF grammar specification
+- Continuous looping creates infinite playback by regenerating broadcasts after each 31-area cycle completes
+- Introduction plays only once per playback session (not per loop iteration) to establish context without becoming repetitive
+- Seamless audio transitions between loop iterations maintain hypnotic listening experience
+- Timestamp updates in subsequent loops reflect passage of time and maintain realism
+- Loop structure (Gale Warnings → General Synopsis → Time Period → 31 Areas, repeat) creates natural broadcast rhythm without requiring manual restart
