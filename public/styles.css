@@ -355,6 +355,212 @@ body {
 }
 
 /* ============================================
+   1970s ANALOG EFFECTS
+   ============================================ */
+
+/* Scanline overlay */
+.scanlines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  z-index: 10;
+  animation: scanline-flicker 8s infinite;
+}
+
+@keyframes scanline-flicker {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.5; }
+}
+
+/* Ghost box for double vision effect */
+.ghost-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid rgba(26, 138, 26, 0.2);
+  border-radius: var(--box-border-radius);
+  pointer-events: none;
+  opacity: 0.4;
+  z-index: 0;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Vignette effect */
+.central-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 60%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+  pointer-events: none;
+  z-index: 5;
+  border-radius: var(--box-border-radius);
+}
+
+/* Curved glass effect */
+.central-box {
+  transform: perspective(1000px) rotateX(1deg);
+  border-radius: 12px;
+}
+
+/* Corner coordinates */
+.corner-data {
+  position: absolute;
+  font-family: 'Courier New', monospace;
+  font-size: 0.65rem;
+  color: var(--color-phosphor-green);
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  z-index: 15;
+  animation: flicker-data 3s infinite;
+}
+
+.corner-data.top-left {
+  top: 0.75rem;
+  left: 0.75rem;
+}
+
+.corner-data.top-right {
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+.corner-data.bottom-left {
+  bottom: 0.75rem;
+  left: 0.75rem;
+}
+
+.corner-data.bottom-right {
+  bottom: 0.75rem;
+  right: 0.75rem;
+}
+
+@keyframes flicker-data {
+  0%, 100% { opacity: 0.6; }
+  2%, 8%, 70% { opacity: 0.3; }
+  4%, 6% { opacity: 0.8; }
+}
+
+/* Text glow/phosphor bleed */
+.forecast-header {
+  text-shadow:
+    0 0 10px var(--color-phosphor-green-glow),
+    0 0 20px var(--color-phosphor-green),
+    0 0 30px var(--color-phosphor-green-dim);
+}
+
+.forecast-subheader,
+.area-name {
+  text-shadow:
+    0 0 8px var(--color-phosphor-green),
+    0 0 15px var(--color-phosphor-green-dim);
+}
+
+/* Button dot-matrix style */
+.transmission-button {
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 50%,
+    transparent 100%
+  );
+  background-size: 100% 4px;
+  box-shadow:
+    inset 0 0 10px rgba(26, 138, 26, 0.1),
+    0 0 15px rgba(26, 138, 26, 0.2);
+  border: 2px solid var(--color-phosphor-green-dim);
+  color: var(--color-phosphor-green);
+  text-shadow: 0 0 5px var(--color-phosphor-green);
+}
+
+.transmission-button:hover {
+  background-color: rgba(26, 138, 26, 0.1);
+  box-shadow:
+    inset 0 0 20px rgba(26, 138, 26, 0.2),
+    0 0 25px rgba(26, 138, 26, 0.4);
+}
+
+.transmission-button.active {
+  background: rgba(26, 138, 26, 0.2);
+  border-color: var(--color-phosphor-green-glow);
+  box-shadow:
+    inset 0 0 30px rgba(26, 138, 26, 0.3),
+    0 0 40px var(--color-phosphor-green-glow);
+  animation: pulse-active 2s infinite;
+}
+
+@keyframes pulse-active {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 30px rgba(26, 138, 26, 0.3),
+      0 0 40px var(--color-phosphor-green-glow);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 40px rgba(26, 138, 26, 0.4),
+      0 0 60px var(--color-phosphor-green-glow);
+  }
+}
+
+/* Magnetic interference animation */
+@keyframes magnetic-shiver {
+  0%, 100% { transform: translate(0, 0) perspective(1000px) rotateX(1deg); }
+  10% { transform: translate(-2px, 1px) perspective(1000px) rotateX(1.5deg); }
+  20% { transform: translate(2px, -1px) perspective(1000px) rotateX(0.5deg); }
+  30% { transform: translate(-1px, 2px) perspective(1000px) rotateX(1.2deg); }
+  40% { transform: translate(1px, -2px) perspective(1000px) rotateX(0.8deg); }
+  50% { transform: translate(0, 0) perspective(1000px) rotateX(1deg); }
+}
+
+.central-box.interference {
+  animation: magnetic-shiver 0.3s ease-in-out;
+}
+
+/* Motion reduced overrides */
+body.motion-reduced .scanlines {
+  animation: none;
+  opacity: 0.3;
+}
+
+body.motion-reduced .ghost-box {
+  display: none;
+}
+
+body.motion-reduced .corner-data {
+  animation: none;
+  opacity: 0.6;
+}
+
+body.motion-reduced .transmission-button.active {
+  animation: none;
+}
+
+body.motion-reduced .central-box.interference {
+  animation: none;
+}
+
+/* ============================================
    RESPONSIVE DESIGN
    ============================================ */
 

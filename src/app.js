@@ -10,6 +10,7 @@ import { globalEventBus } from './state/events.js';
 import { BackgroundCanvas } from './visuals/background.js';
 import { VisualEffects } from './visuals/effects.js';
 import { MotionController } from './visuals/motion-toggle.js';
+import { AnalogEffects } from './visuals/analog-effects.js';
 import { focusMonitor } from './focus/focus-monitor.js';
 import { warningInjector } from './focus/warning-injector.js';
 
@@ -17,6 +18,7 @@ import { warningInjector } from './focus/warning-injector.js';
 let backgroundCanvas = null;
 let visualEffects = null;
 let motionController = null;
+let analogEffects = null;
 
 /**
  * Display error message to user
@@ -121,11 +123,22 @@ async function initialize() {
   motionController = new MotionController();
   motionController.initialize();
 
+  // Initialize analog effects (1970s aesthetic)
+  analogEffects = new AnalogEffects();
+  analogEffects.initialize();
+
   // Wire motion toggle button
   const motionToggleButton = document.getElementById('motion-toggle');
   if (motionToggleButton) {
     motionToggleButton.addEventListener('click', () => {
       motionController.toggle();
+
+      // Toggle analog effects with motion
+      if (document.body.classList.contains('motion-reduced')) {
+        analogEffects.disable();
+      } else {
+        analogEffects.enable();
+      }
     });
   }
 
