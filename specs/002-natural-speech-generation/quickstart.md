@@ -47,7 +47,7 @@ This guide walks you through setting up, testing, and integrating SSML-based nat
 4. **Create API Key**:
    - Navigate to "APIs & Services" → "Credentials"
    - Click "Create Credentials" → "API Key"
-   - Copy the key (e.g., `AIzaSyDtQveOIMcqrZVKnDscu-tuZ3da_D0ZG3U`)
+   - Copy the key (e.g., `AIzaSy...` - keep this secure!)
 
 5. **Restrict API Key** (important for security):
    - Click "Restrict Key"
@@ -65,8 +65,9 @@ Create `/src/config.js`:
 ```javascript
 // DO NOT COMMIT THIS FILE TO GIT
 // Add to .gitignore: src/config.js
+// NOTE: This approach is DEPRECATED - use backend Worker proxy instead
 
-export const TTS_API_KEY = 'AIzaSyDtQveOIMcqrZVKnDscu-tuZ3da_D0ZG3U';
+export const TTS_API_KEY = 'YOUR_API_KEY_HERE';
 ```
 
 Add to `.gitignore`:

@@ -56,7 +56,7 @@ This document presents research findings for implementing SSML-based natural spe
 
 **API Integration**:
 - Already integrated via `/generate-audio-library.js`
-- API key: User has working key (AIzaSyDtQveOIMcqrZVKnDscu-tuZ3da_D0ZG3U)
+- API key: [REDACTED - Stored securely in backend Worker]
 - REST API, simple authentication, good documentation
 
 ### Alternatives Considered
