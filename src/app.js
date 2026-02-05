@@ -8,13 +8,13 @@ import { audioPlayer } from './audio/player.js';
 import { sessionState } from './state/session.js';
 import { globalEventBus } from './state/events.js';
 import { BackgroundCanvas } from './visuals/background.js';
-import { Oscilloscope } from './visuals/oscilloscope.js';
 import { VisualEffects } from './visuals/effects.js';
 import { MotionController } from './visuals/motion-toggle.js';
+import { focusMonitor } from './focus/focus-monitor.js';
+import { warningInjector } from './focus/warning-injector.js';
 
 // Visual components
 let backgroundCanvas = null;
-let oscilloscope = null;
 let visualEffects = null;
 let motionController = null;
 
@@ -129,6 +129,13 @@ async function initialize() {
     });
   }
 
+  // T008, T009, T010: Initialize inactivity warning system
+  // Must initialize audio player first, then focus monitor, then warning injector
+  await audioPlayer.initialize();
+  focusMonitor.initialize();
+  warningInjector.initialize(focusMonitor, audioPlayer);
+  console.log('[App] Inactivity warning system initialized');
+
   hideError();
   return true;
 }
@@ -163,11 +170,6 @@ function setupUI() {
         backgroundCanvas.disconnectAudio();
       }
 
-      // Stop oscilloscope
-      if (oscilloscope) {
-        oscilloscope.stop();
-      }
-
       // Clear area name
       if (areaNameDiv) {
         areaNameDiv.textContent = '';
@@ -191,24 +193,6 @@ function setupUI() {
           if (masterGain && audioContext) {
             console.log('[App] Connecting background canvas to master gain node');
             backgroundCanvas.connectAudio(masterGain, audioContext);
-          }
-        }
-
-        // Start oscilloscope
-        const oscCanvas = document.getElementById('oscilloscope');
-        if (oscCanvas && !oscilloscope) {
-          const audioContext = audioPlayer.getAudioContext();
-          oscilloscope = new Oscilloscope(oscCanvas, audioContext);
-
-          // Connect to audio output for visualization
-          const radioFilter = audioPlayer.getRadioFilter();
-          if (radioFilter) {
-            oscilloscope.start(radioFilter.outputGain);
-          }
-        } else if (oscilloscope) {
-          const radioFilter = audioPlayer.getRadioFilter();
-          if (radioFilter) {
-            oscilloscope.start(radioFilter.outputGain);
           }
         }
       } catch (error) {

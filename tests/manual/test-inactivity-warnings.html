@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Inactivity Warning Test - INFINITE_SHIPPER</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #000;
+      color: #0f0;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      border-bottom: 2px solid #0f0;
+      padding-bottom: 10px;
+    }
+    button {
+      background: #333;
+      color: #0f0;
+      border: 1px solid #0f0;
+      padding: 10px 20px;
+      margin: 10px 5px;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #0f0;
+      color: #000;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    #status, #timer, #events, #instructions {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #0f0;
+      border-radius: 5px;
+    }
+    #events {
+      max-height: 400px;
+      overflow-y: scroll;
+      background: #111;
+    }
+    .event {
+      margin: 5px 0;
+      padding: 5px;
+      border-left: 3px solid #0f0;
+      font-size: 12px;
+    }
+    .event.warning {
+      border-left-color: #ff0;
+      color: #ff0;
+    }
+    .event.focus {
+      border-left-color: #0ff;
+      color: #0ff;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 5px 0;
+    }
+    .stat-label {
+      font-weight: bold;
+    }
+    .stat-value {
+      color: #ff0;
+    }
+    .hidden {
+      color: #f00;
+    }
+    .visible {
+      color: #0f0;
+    }
+    .controls {
+      text-align: center;
+      margin: 20px 0;
+    }
+    #instructions {
+      background: #111;
+    }
+    #instructions h3 {
+      color: #ff0;
+      margin-top: 20px;
+    }
+    #instructions ol {
+      padding-left: 20px;
+    }
+    #instructions li {
+      margin: 10px 0;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌊 Inactivity Warning Test Page 🌊</h1>
+
+  <div class="controls">
+    <button id="startBtn">▶ Start Broadcast</button>
+    <button id="stopBtn">⏹ Stop Broadcast</button>
+    <button id="forceWarningBtn">⚠ Force Warning Check</button>
+    <button id="clearLogBtn">🗑 Clear Log</button>
+  </div>
+
+  <div id="status">
+    <h3>📊 Broadcast Status</h3>
+    <div class="stat-row">
+      <span class="stat-label">Playback:</span>
+      <span class="stat-value" id="statusText">Stopped</span>
+    </div>
+  </div>
+
+  <div id="timer">
+    <h3>⏱ Focus State</h3>
+    <div class="stat-row">
+      <span class="stat-label">Tab Visibility:</span>
+      <span class="stat-value" id="focusState">Visible ✓</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Unfocused Time:</span>
+      <span class="stat-value" id="unfocusedTime">0s</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Last Warning:</span>
+      <span class="stat-value" id="lastWarning">Never</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Warning Count:</span>
+      <span class="stat-value" id="warningCount">0</span>
+    </div>
+  </div>
+
+  <div id="events">
+    <h3>📝 Event Log (newest first)</h3>
+    <div id="eventLog"></div>
+  </div>
+
+  <div id="instructions">
+    <h3>📋 Test Scenarios</h3>
+
+    <h3>US1: Basic Inactivity Detection (MVP)</h3>
+    <ol>
+      <li>Click <strong>Start Broadcast</strong></li>
+      <li>Switch to another tab for exactly <strong>61 seconds</strong></li>
+      <li>Return to this tab</li>
+      <li>✅ Verify: 1 warning message plays at next message boundary</li>
+      <li>✅ Verify: Normal broadcast resumes after warning</li>
+    </ol>
+
+    <h3>US2: Repeated Warnings (Extended Absence)</h3>
+    <ol>
+      <li>Click <strong>Start Broadcast</strong></li>
+      <li>Leave tab unfocused for <strong>5+ minutes</strong></li>
+      <li>Return to this tab</li>
+      <li>✅ Verify: 5+ warning messages played (check event log)</li>
+      <li>✅ Verify: Warnings occurred at ~60-second intervals</li>
+      <li>✅ Verify: Random message selection (different messages)</li>
+    </ol>
+
+    <h3>US3: Mid-Warning Focus Restore</h3>
+    <ol>
+      <li>Click <strong>Start Broadcast</strong></li>
+      <li>Lose focus for 61+ seconds</li>
+      <li>Wait for warning to start playing (watch event log)</li>
+      <li>Return to tab <strong>while warning is playing</strong></li>
+      <li>✅ Verify: Warning completes without cutoff</li>
+      <li>✅ Verify: Next content is normal broadcast (not another warning)</li>
+    </ol>
+
+    <h3>Edge Cases</h3>
+    <ol>
+      <li><strong>59-second threshold</strong>: Switch tabs for 59s → No warning should play</li>
+      <li><strong>Rapid switching</strong>: Switch in/out multiple times within 1 minute → Timer doesn't reset</li>
+      <li><strong>Stopped broadcast</strong>: Stop broadcast, lose focus for 61s → No warning plays</li>
+    </ol>
+
+    <h3>Success Criteria</h3>
+    <ul>
+      <li><strong>SC-001</strong>: Warning plays within 5s of message boundary after 60+ seconds</li>
+      <li><strong>SC-002</strong>: No message repeats more than twice in 5-warning sequence</li>
+      <li><strong>SC-003</strong>: Warnings at 60s intervals ±10s tolerance</li>
+      <li><strong>SC-004</strong>: Broadcast resumes within 2s of warning completion</li>
+      <li><strong>SC-005</strong>: No audio interruptions during transitions</li>
+      <li><strong>SC-006</strong>: 100% accuracy on 60s threshold (59s = no warning)</li>
+    </ul>
+  </div>
+
+  <script type="module">
+    import { audioPlayer } from '../../src/audio/player.js';
+    import { focusMonitor } from '../../src/focus/focus-monitor.js';
+    import { warningInjector } from '../../src/focus/warning-injector.js';
+    import { globalEventBus } from '../../src/state/events.js';
+
+    // Initialize system
+    console.log('[Test Page] Initializing inactivity warning system...');
+    await audioPlayer.initialize();
+    focusMonitor.initialize();
+    warningInjector.initialize(focusMonitor, audioPlayer);
+    console.log('[Test Page] System initialized');
+
+    // UI elements
+    const statusText = document.getElementById('statusText');
+    const focusStateEl = document.getElementById('focusState');
+    const unfocusedTimeEl = document.getElementById('unfocusedTime');
+    const lastWarningEl = document.getElementById('lastWarning');
+    const warningCountEl = document.getElementById('warningCount');
+    const eventLog = document.getElementById('eventLog');
+
+    // Button handlers
+    document.getElementById('startBtn').onclick = async () => {
+      try {
+        await audioPlayer.start();
+        statusText.textContent = 'Playing ▶';
+        statusText.style.color = '#0f0';
+        logEvent('system', 'Broadcast started');
+      } catch (error) {
+        logEvent('error', `Failed to start: ${error.message}`);
+        console.error(error);
+      }
+    };
+
+    document.getElementById('stopBtn').onclick = async () => {
+      await audioPlayer.stop();
+      statusText.textContent = 'Stopped ⏹';
+      statusText.style.color = '#f00';
+      logEvent('system', 'Broadcast stopped');
+    };
+
+    document.getElementById('forceWarningBtn').onclick = () => {
+      warningInjector.checkAndInject();
+      logEvent('system', 'Manual warning check triggered');
+    };
+
+    document.getElementById('clearLogBtn').onclick = () => {
+      eventLog.innerHTML = '';
+      logEvent('system', 'Event log cleared');
+    };
+
+    // Update timer display every second
+    setInterval(() => {
+      const state = focusMonitor.getFocusState();
+
+      if (state.isVisible) {
+        focusStateEl.textContent = 'Visible ✓';
+        focusStateEl.className = 'stat-value visible';
+      } else {
+        focusStateEl.textContent = 'Hidden ✗';
+        focusStateEl.className = 'stat-value hidden';
+      }
+
+      if (state.focusLostTimestamp) {
+        const elapsed = Math.floor((Date.now() - state.focusLostTimestamp) / 1000);
+        unfocusedTimeEl.textContent = `${elapsed}s`;
+
+        // Highlight if approaching threshold
+        if (elapsed >= 55 && elapsed < 60) {
+          unfocusedTimeEl.style.color = '#ff0';
+        } else if (elapsed >= 60) {
+          unfocusedTimeEl.style.color = '#f00';
+        } else {
+          unfocusedTimeEl.style.color = '#0f0';
+        }
+      } else {
+        unfocusedTimeEl.textContent = '0s';
+        unfocusedTimeEl.style.color = '#0f0';
+      }
+
+      if (state.lastWarningTimestamp) {
+        const ago = Math.floor((Date.now() - state.lastWarningTimestamp) / 1000);
+        lastWarningEl.textContent = `${ago}s ago`;
+      } else {
+        lastWarningEl.textContent = 'Never';
+      }
+
+      warningCountEl.textContent = state.warningCount;
+    }, 1000);
+
+    // Event logging
+    function logEvent(type, data) {
+      const eventEl = document.createElement('div');
+      eventEl.className = 'event';
+
+      const timestamp = new Date().toLocaleTimeString();
+      const dataStr = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+
+      eventEl.textContent = `[${timestamp}] ${type}: ${dataStr}`;
+
+      if (type.startsWith('warning')) {
+        eventEl.classList.add('warning');
+      } else if (type.startsWith('focus')) {
+        eventEl.classList.add('focus');
+      }
+
+      eventLog.insertBefore(eventEl, eventLog.firstChild);
+    }
+
+    // Listen for all inactivity events
+    globalEventBus.on('focus:lost', (e) => {
+      logEvent('focus:lost', { timestamp: e.timestamp });
+    });
+
+    globalEventBus.on('focus:restored', (e) => {
+      logEvent('focus:restored', {
+        unfocusedDuration: `${Math.floor(e.unfocusedDurationMs / 1000)}s`,
+        warningsPlayed: e.warningsPlayed
+      });
+    });
+
+    globalEventBus.on('warning:ready', (e) => {
+      logEvent('warning:ready', {
+        messageId: e.messageId,
+        count: e.warningCount,
+        text: e.messageText.substring(0, 50) + '...'
+      });
+    });
+
+    globalEventBus.on('warning:playing', (e) => {
+      logEvent('warning:playing', {
+        messageId: e.messageId,
+        count: e.warningCount
+      });
+    });
+
+    globalEventBus.on('warning:complete', (e) => {
+      logEvent('warning:complete', {
+        messageId: e.messageId,
+        source: e.synthesisSource
+      });
+    });
+
+    globalEventBus.on('report:playing', (e) => {
+      logEvent('report:playing', { area: e.area?.name || 'Unknown' });
+    });
+
+    globalEventBus.on('report:complete', (e) => {
+      logEvent('report:complete', { area: e.area?.name || 'Unknown' });
+    });
+
+    globalEventBus.on('playback:started', () => {
+      logEvent('playback', 'Started');
+    });
+
+    globalEventBus.on('playback:stopped', () => {
+      logEvent('playback', 'Stopped');
+    });
+
+    console.log('[Test Page] Event listeners registered');
+    logEvent('system', 'Test page loaded - Ready for testing');
+  </script>
+</body>
+</html>

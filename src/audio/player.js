@@ -28,6 +28,8 @@ export class AudioPlayer {
     this.useFullBroadcast = true; // NEW: Play full EBNF broadcasts instead of individual reports
     this.currentBroadcast = null; // NEW: Current broadcast being played
     this.currentAreaIndex = 0; // NEW: Index within current broadcast's area forecasts
+    this.pendingWarning = null; // T005: Pending warning for injection
+    this.warningListenerRegistered = false; // T005: Track if listener already registered
   }
 
   /**
@@ -71,6 +73,18 @@ export class AudioPlayer {
         console.error('[AudioPlayer] Failed to initialize SSML synthesizer:', error);
         this.useSSML = false; // T031: Disable SSML on initialization failure
       }
+    }
+
+    // T005: Listen for inactivity warning injection requests
+    if (!this.warningListenerRegistered) {
+      const handleWarning = (injectionRequest) => {
+        console.log('[AudioPlayer] Received warning:ready event, queuing warning:', injectionRequest.messageId);
+        // Queue the warning instead of playing immediately
+        this.pendingWarning = injectionRequest;
+      };
+      globalEventBus.on('warning:ready', handleWarning.bind(this));
+      this.warningListenerRegistered = true;
+      console.log('[AudioPlayer] Warning listener registered');
     }
   }
 
@@ -190,6 +204,15 @@ export class AudioPlayer {
       }
 
       globalEventBus.emit('report:complete', forecast);
+
+      // T005: Check for pending warning and play it BETWEEN forecasts
+      if (this.pendingWarning) {
+        const warning = this.pendingWarning;
+        this.pendingWarning = null; // Clear pending warning
+
+        console.log('[AudioPlayer] Playing pending warning:', warning.messageId);
+        await this._handleWarningInjection(warning);
+      }
     }
 
     console.log('[AudioPlayer] EBNF broadcast complete:', broadcast.broadcastId);
@@ -248,6 +271,15 @@ export class AudioPlayer {
 
     // Emit report complete event
     globalEventBus.emit('report:complete', report);
+
+    // T005: Check for pending warning and play it after report
+    if (this.pendingWarning) {
+      const warning = this.pendingWarning;
+      this.pendingWarning = null; // Clear pending warning
+
+      console.log('[AudioPlayer] Playing pending warning:', warning.messageId);
+      await this._handleWarningInjection(warning);
+    }
   }
 
   /**
@@ -325,6 +357,45 @@ export class AudioPlayer {
   }
 
   /**
+   * Handle warning injection
+   * T005: Inactivity warning system
+   * @private
+   */
+  async _handleWarningInjection(injectionRequest) {
+    console.log('[AudioPlayer] Handling warning injection:', injectionRequest.messageId);
+
+    // Emit warning playing event
+    globalEventBus.emit('warning:playing', {
+      messageId: injectionRequest.messageId,
+      timestamp: Date.now(),
+      warningCount: injectionRequest.warningCount
+    });
+
+    try {
+      // Synthesize and play warning message
+      await this._speakText(injectionRequest.messageText, 'InactivityWarning');
+
+      // Emit warning complete event
+      globalEventBus.emit('warning:complete', {
+        messageId: injectionRequest.messageId,
+        timestamp: Date.now(),
+        synthesisSource: 'google-tts' // Assume TTS unless cached
+      });
+
+      console.log('[AudioPlayer] Warning injection complete:', injectionRequest.messageId);
+    } catch (error) {
+      console.error('[AudioPlayer] Warning injection failed:', error);
+
+      // Still emit complete event (for state consistency)
+      globalEventBus.emit('warning:complete', {
+        messageId: injectionRequest.messageId,
+        timestamp: Date.now(),
+        error: error.message
+      });
+    }
+  }
+
+  /**
    * Play report using SSML synthesis
    * T030: Implementation for SSML-based playback
    * @private
@@ -341,10 +412,10 @@ export class AudioPlayer {
     const audioUrl = URL.createObjectURL(generatedAudio.audioBlob);
     const audio = new Audio(audioUrl);
 
-    // Apply radio filter if available
-    if (this.radioFilter && this.audioContext) {
-      // TODO: Connect audio element to Web Audio API for filtering
-      // For now, play directly
+    // Connect audio element to Web Audio API for visualization and filtering
+    if (this.masterGain && this.audioContext) {
+      const source = this.audioContext.createMediaElementSource(audio);
+      source.connect(this.masterGain);
     }
 
     // Play audio and wait for completion

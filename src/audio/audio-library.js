@@ -4,7 +4,7 @@
  * Replaces Web Speech API with higher quality pre-recorded audio
  */
 
-const AUDIO_BASE_PATH = '/audio';
+const AUDIO_BASE_PATH = 'public/audio';
 
 /**
  * Audio library file path mapper

@@ -90,32 +90,6 @@ export class BackgroundCanvas {
     this.ctx.strokeStyle = 'rgba(26, 138, 26, 0.6)'; // Phosphor green dim with moderate opacity
     this.ctx.lineWidth = 2;
 
-    // Debug: Draw amplitude meter in top-left corner
-    if (this.analyser) {
-      const meterWidth = 200;
-      const meterHeight = 20;
-      const meterX = 20;
-      const meterY = 20;
-
-      // Background
-      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      this.ctx.fillRect(meterX, meterY, meterWidth, meterHeight);
-
-      // Amplitude bar
-      this.ctx.fillStyle = 'rgba(26, 138, 26, 0.8)';
-      this.ctx.fillRect(meterX, meterY, meterWidth * this.audioAmplitude, meterHeight);
-
-      // Border
-      this.ctx.strokeStyle = 'rgba(26, 138, 26, 0.8)';
-      this.ctx.lineWidth = 1;
-      this.ctx.strokeRect(meterX, meterY, meterWidth, meterHeight);
-
-      // Text
-      this.ctx.fillStyle = 'rgba(180, 255, 180, 0.9)';
-      this.ctx.font = '12px monospace';
-      this.ctx.fillText(`Audio: ${(this.audioAmplitude * 100).toFixed(1)}%`, meterX + 5, meterY + 14);
-    }
-
     const lineCount = 20; // Increased from 15
     const spacing = height / lineCount;
 
