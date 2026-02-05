@@ -63,7 +63,7 @@ export const INTRODUCTION_VARIANTS = [
     id: 'std-005',
     isSurreal: false,
     authorityTemplate: 'the Met Office',
-    template: 'The shipping forecast for {date}, issued by {authority} at {time}',
+    template: 'The shipping forecast for {time} on {date}, issued by {authority}',
     weight: 2
   },
 
@@ -122,7 +122,7 @@ export const INTRODUCTION_VARIANTS = [
     isSurreal: false,
     authorityTemplate: 'the Meteorological Office',
     template:
-      'The shipping forecast for {date}. Issued by {authority} on behalf of the Maritime and Coastguard Agency at {time}',
+      'The shipping forecast for {time} on {date}. Issued by {authority} on behalf of the Maritime and Coastguard Agency',
     weight: 2
   },
 

@@ -109,20 +109,25 @@ function numberToWord(num) {
  * Format date in BBC Radio 4 spoken format
  *
  * Converts a Date object to BBC spoken date format with day of week and ordinal date.
- * Format: "on [day] the [ordinal] of [month]"
- * Example: "on Tuesday the second of February"
+ * Format: "[time] on [day] the [ordinal] of [month]" when used with time
+ * Format standalone: "on [day] the [ordinal] of [month]"
+ * Example: "zero five thirty on Tuesday the second of February"
  *
  * @param {Date} date - Date object to format
+ * @param {boolean} [includeOn=false] - Whether to include "on" prefix
  * @returns {string} BBC formatted date string
  */
-export function formatBBCDate(date) {
+export function formatBBCDate(date, includeOn = false) {
   const dayOfWeek = getDayOfWeek(date.getUTCDay());
   const dayOfMonth = date.getUTCDate();
   const month = getMonth(date.getUTCMonth());
 
   const ordinal = getOrdinalDay(dayOfMonth);
 
-  return `on ${dayOfWeek} the ${ordinal} of ${month}`;
+  if (includeOn) {
+    return `on ${dayOfWeek} the ${ordinal} of ${month}`;
+  }
+  return `${dayOfWeek} the ${ordinal} of ${month}`;
 }
 
 /**
@@ -254,4 +259,44 @@ export function getOrdinalSuffix(day) {
     default:
       return 'th';
   }
+}
+
+/**
+ * Format pressure value as individual digits for BBC Radio 4 spoken format
+ *
+ * Converts pressure values to digit-by-digit spoken format.
+ * "0" is pronounced as "oh" in middle positions, "zero" at start.
+ * Examples:
+ * - 904 → "nine-oh-four"
+ * - 1012 → "one-oh-one-two"
+ * - 998 → "nine-nine-eight"
+ * - 1000 → "one-oh-oh-oh"
+ *
+ * @param {number} pressure - Pressure value in millibars (900-1099)
+ * @returns {string} Digit-by-digit spoken format
+ */
+export function formatPressureDigits(pressure) {
+  const digits = pressure.toString().split('');
+  const digitWords = {
+    '0': 'oh',
+    '1': 'one',
+    '2': 'two',
+    '3': 'three',
+    '4': 'four',
+    '5': 'five',
+    '6': 'six',
+    '7': 'seven',
+    '8': 'eight',
+    '9': 'nine'
+  };
+
+  // Convert each digit to word, but use "oh" for 0 except at the start
+  const words = digits.map((digit, index) => {
+    if (digit === '0' && index === 0) {
+      return 'zero';
+    }
+    return digitWords[digit];
+  });
+
+  return words.join('-');
 }

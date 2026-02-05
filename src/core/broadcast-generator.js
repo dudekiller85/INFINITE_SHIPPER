@@ -19,7 +19,7 @@ import {
   selectIntroductionVariant,
   selectTimePeriodVariant
 } from '../audio/broadcast-variants.js';
-import { formatBBCTime, formatBBCDate } from '../utils/date-formatter.js';
+import { formatBBCTime, formatBBCDate, formatPressureDigits } from '../utils/date-formatter.js';
 import {
   PRESSURE_DESCRIPTIONS,
   RATE_OF_CHANGE,
@@ -258,15 +258,19 @@ export class BroadcastGenerator {
     const expectedPressure = currentPressure + changeMagnitude;
     const expectedTime = this._formatFutureTime();
 
+    // Format pressure values as digits
+    const currentPressureFormatted = formatPressureDigits(currentPressure);
+    const expectedPressureFormatted = formatPressureDigits(expectedPressure);
+
     // Format text per EBNF specification
     let text = 'The general synopsis:\n\n';
-    text += `${pressureDescription} ${currentDirection} of ${currentArea} ${currentPressure}`;
+    text += `${pressureDescription} ${currentDirection} of ${currentArea} ${currentPressureFormatted}`;
 
     if (changeType && changeRate) {
       text += `, ${changeType} ${changeRate},`;
     }
 
-    text += ` expected ${expectedDirection} of ${expectedArea} ${expectedPressure} by ${expectedTime}.`;
+    text += ` expected ${expectedDirection} of ${expectedArea} ${expectedPressureFormatted} by ${expectedTime}.`;
 
     return {
       pressureDescription,
