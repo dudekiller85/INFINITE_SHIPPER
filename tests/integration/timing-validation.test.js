@@ -127,8 +127,8 @@ describe('Timing Validation', () => {
   });
 
   describe('Speech rate effects on timing', () => {
-    it('should calculate total duration with rate 0.85', () => {
-      // T041: Verify standard area speaking rate is 85%
+    it('should calculate total duration with rate 1.0', () => {
+      // T041: Verify standard area speaking rate is 100%
       const report = {
         area: 'Viking',
         isPhantom: false,
@@ -137,8 +137,8 @@ describe('Timing Validation', () => {
 
       const template = builder.build(report);
 
-      // Check SSML uses 85% rate for standard areas
-      expect(template.ssml).toContain('<prosody rate="85%">');
+      // Check SSML uses 100% rate for standard areas
+      expect(template.ssml).toContain('<prosody rate="100%">');
     });
 
     it('should calculate total duration with rate 0.9 (phantom)', () => {

@@ -211,7 +211,7 @@ export class SSMLSynthesizer {
     try {
       // Create simple SSML template
       const template = {
-        ssml: `<speak><prosody rate="85%">${this._escapeXML(text)}</prosody></speak>`,
+        ssml: `<speak><prosody rate="100%">${this._escapeXML(text)}</prosody></speak>`,
         reportId: `text-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         areaName: label,
         characterCount: text.length,

@@ -1,0 +1,240 @@
+openapi: 3.0.3
+info:
+  title: INFINITE_SHIPPER TTS Proxy API
+  description: Backend proxy service for secure Google Cloud TTS API access
+  version: 1.0.0
+  contact:
+    name: INFINITE_SHIPPER
+    url: https://github.com/petemyall/INFINITE_SHIPPER
+
+servers:
+  - url: https://infinite-shipper-tts-proxy.username.workers.dev
+    description: Production (Cloudflare Workers)
+  - url: http://localhost:8787
+    description: Local development (wrangler dev)
+
+paths:
+  /synthesize:
+    post:
+      summary: Synthesize speech from SSML
+      description: |
+        Proxies TTS synthesis requests to Google Cloud TTS API with:
+        - Secure API key management (server-side only)
+        - Rate limiting (30 requests/minute per IP)
+        - Origin validation (authorized domains only)
+      operationId: synthesizeSpeech
+      tags:
+        - TTS
+      security:
+        - originHeader: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TTSRequest'
+            example:
+              input:
+                ssml: "<speak>Dover. <break time=\"200ms\"/> Southerly 5 or 6.</speak>"
+              voice:
+                languageCode: "en-GB"
+                name: "en-GB-Neural2-D"
+              audioConfig:
+                audioEncoding: "MP3"
+                sampleRateHertz: 24000
+      responses:
+        '200':
+          description: Successful synthesis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TTSSuccessResponse'
+              example:
+                audioContent: "//NExAAQYAIIAAhEuElFV...(base64 audio data)"
+                audioConfig:
+                  audioEncoding: "MP3"
+                  sampleRateHertz: 24000
+        '400':
+          description: Bad request (invalid SSML or malformed payload)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Bad request: Invalid SSML"
+                code: 400
+        '403':
+          description: Forbidden (invalid origin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Forbidden: Invalid origin"
+                code: 403
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+              example:
+                error: "Rate limit exceeded"
+                code: 429
+                retryAfter: 42
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "TTS synthesis failed"
+                code: 500
+                details: "Google Cloud TTS API returned error"
+    options:
+      summary: CORS preflight
+      description: Handles CORS preflight requests for origin validation
+      operationId: corsPreflight
+      tags:
+        - CORS
+      responses:
+        '200':
+          description: CORS preflight successful
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+              description: Allowed origin (matched from ALLOWED_ORIGINS)
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+                example: "POST, OPTIONS"
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+                example: "Content-Type"
+            Access-Control-Max-Age:
+              schema:
+                type: string
+                example: "86400"
+
+components:
+  schemas:
+    TTSRequest:
+      type: object
+      required:
+        - input
+        - voice
+        - audioConfig
+      properties:
+        input:
+          type: object
+          required:
+            - ssml
+          properties:
+            ssml:
+              type: string
+              description: SSML-formatted text to synthesize
+              example: "<speak>Test speech</speak>"
+        voice:
+          type: object
+          required:
+            - languageCode
+            - name
+          properties:
+            languageCode:
+              type: string
+              description: BCP-47 language code
+              example: "en-GB"
+            name:
+              type: string
+              description: Google Cloud TTS voice name
+              example: "en-GB-Neural2-D"
+        audioConfig:
+          type: object
+          required:
+            - audioEncoding
+            - sampleRateHertz
+          properties:
+            audioEncoding:
+              type: string
+              enum: ["MP3", "LINEAR16", "OGG_OPUS"]
+              description: Output audio format
+              example: "MP3"
+            sampleRateHertz:
+              type: integer
+              description: Sample rate in Hz
+              example: 24000
+
+    TTSSuccessResponse:
+      type: object
+      required:
+        - audioContent
+        - audioConfig
+      properties:
+        audioContent:
+          type: string
+          format: byte
+          description: Base64-encoded synthesized audio
+        timepoints:
+          type: array
+          description: Optional SSML timing markers
+          items:
+            type: object
+            properties:
+              markName:
+                type: string
+              timeSeconds:
+                type: number
+        audioConfig:
+          type: object
+          properties:
+            audioEncoding:
+              type: string
+            sampleRateHertz:
+              type: integer
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        code:
+          type: integer
+          description: HTTP status code
+        details:
+          type: string
+          description: Additional error context
+
+    RateLimitErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          required:
+            - retryAfter
+          properties:
+            retryAfter:
+              type: integer
+              description: Seconds until rate limit resets
+              example: 42
+
+  securitySchemes:
+    originHeader:
+      type: apiKey
+      in: header
+      name: Origin
+      description: Request must originate from an allowed domain
+
+tags:
+  - name: TTS
+    description: Text-to-speech synthesis operations
+  - name: CORS
+    description: Cross-origin resource sharing
+
+externalDocs:
+  description: INFINITE_SHIPPER Documentation
+  url: https://github.com/petemyall/INFINITE_SHIPPER

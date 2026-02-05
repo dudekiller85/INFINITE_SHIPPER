@@ -2,18 +2,17 @@
 
 <!--
 Sync Impact Report:
-Version Change: [TEMPLATE] → 1.0.0
-Modified Principles: Initial constitution creation
+Version Change: 1.0.0 → 1.1.0
+Modified Principles:
+  - "No Automated Testing Required" → Added security testing exception for backend proxy
 Added Sections:
-  - Core Principles (Personal Project Workflow, No Automated Testing Required)
-  - Development Philosophy
-  - Governance
-Removed Sections: N/A (initial version)
+  - Exception clause in Principle II for critical security components
+Removed Sections: N/A
 Templates Requiring Updates:
-  - ⚠ .specify/templates/plan-template.md - Remove mandatory test generation steps
-  - ⚠ .specify/templates/tasks-template.md - Remove test task requirements
-  - ⚠ .specify/templates/spec-template.md - Make testing optional in acceptance criteria
-Follow-up TODOs: None
+  - ✅ No template changes required (exception is principle-level guidance)
+Follow-up TODOs:
+  - Security tests for backend proxy should be implemented when proxy is built (feature 006)
+  - API key exposure tests should verify zero credential leakage
 -->
 
 ## Core Principles
@@ -36,7 +35,12 @@ Automated tests (unit tests, integration tests, E2E tests) are **NOT** required 
 - Console debugging and observation
 - Test HTML pages for ad-hoc validation
 
-**Rationale**: For a personal creative project without multiple developers or production deployment constraints, automated testing creates maintenance burden without sufficient value. Manual testing provides immediate feedback and allows faster iteration.
+**Exception**: Security-critical components MUST have automated tests:
+- Backend proxy API key obfuscation (MUST verify zero credential exposure)
+- Rate limiting enforcement (MUST verify abuse prevention)
+- Origin validation (MUST verify unauthorized requests are rejected)
+
+**Rationale**: For a personal creative project without multiple developers or production deployment constraints, automated testing creates maintenance burden without sufficient value. Manual testing provides immediate feedback and allows faster iteration. However, security vulnerabilities that could lead to financial loss or data exposure require automated verification that cannot be reliably performed manually.
 
 ### III. Natural Speech Quality
 
@@ -54,7 +58,7 @@ Weather reports MUST be generated in real-time using TTS synthesis rather than p
 
 **Rationale**: Pre-concatenated MP3s sound artificial and break immersion. Real-time synthesis with SSML allows dynamic prosody control for natural-sounding output.
 
-##Development Philosophy
+## Development Philosophy
 
 This project embraces rapid prototyping and creative experimentation. Code quality comes from clarity and simplicity rather than formal processes:
 
@@ -62,6 +66,7 @@ This project embraces rapid prototyping and creative experimentation. Code quali
 - **Browser-Based Testing**: Use test HTML pages and browser console for validation
 - **Iterative Refinement**: Improve through successive manual testing cycles
 - **Documentation Through Code**: Code should be self-explanatory; add comments only where necessary
+- **Security as Exception**: Security-critical paths warrant automated verification
 
 ## Governance
 
@@ -75,11 +80,12 @@ This constitution defines the development philosophy and quality standards for I
 **Compliance**:
 - All feature specifications and implementation plans should align with these principles
 - Testing requirements in templates should reflect "No Automated Testing Required" principle
-- When AI assistants (Claude, etc.) suggest automated tests, remind them of this principle
+- Security-critical features (API proxies, authentication) MUST include automated security tests
+- When AI assistants (Claude, etc.) suggest automated tests, remind them of this principle and the security exception
 
 **Version Control**:
 - MAJOR: Fundamental philosophy changes (e.g., reverting "No Testing" principle)
 - MINOR: New principles or sections added
 - PATCH: Clarifications, wording improvements, typos
 
-**Version**: 1.0.0 | **Ratified**: 2026-02-02 | **Last Amended**: 2026-02-02
+**Version**: 1.1.0 | **Ratified**: 2026-02-02 | **Last Amended**: 2026-02-04

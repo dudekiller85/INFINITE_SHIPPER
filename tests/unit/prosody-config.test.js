@@ -89,8 +89,8 @@ describe('PROSODY_CONFIG', () => {
 
   describe('Rate configuration', () => {
     it('should define speaking rate for standard areas', () => {
-      // T037: Verify standard area rate is 0.85 (85%)
-      expect(PROSODY_CONFIG.rates.standard).toBe(0.85);
+      // T037: Verify standard area rate is 1.0 (100%)
+      expect(PROSODY_CONFIG.rates.standard).toBe(1.0);
     });
 
     it('should define speaking rate for phantom areas', () => {

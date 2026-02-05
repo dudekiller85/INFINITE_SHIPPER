@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/petemyall/INFINITE_SHIPPER/schemas/tts-request.json",
+  "title": "TTSRequest",
+  "description": "Request payload for TTS synthesis via backend proxy",
+  "type": "object",
+  "required": ["input", "voice", "audioConfig"],
+  "properties": {
+    "input": {
+      "type": "object",
+      "required": ["ssml"],
+      "properties": {
+        "ssml": {
+          "type": "string",
+          "description": "SSML-formatted text to synthesize",
+          "minLength": 1,
+          "maxLength": 5000,
+          "pattern": "^<speak>.*</speak>$",
+          "examples": [
+            "<speak>Test speech</speak>",
+            "<speak>Dover. <break time=\"200ms\"/> Southerly 5 or 6.</speak>"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "voice": {
+      "type": "object",
+      "required": ["languageCode", "name"],
+      "properties": {
+        "languageCode": {
+          "type": "string",
+          "description": "BCP-47 language code",
+          "pattern": "^[a-z]{2}-[A-Z]{2}$",
+          "examples": ["en-GB", "en-US", "fr-FR"]
+        },
+        "name": {
+          "type": "string",
+          "description": "Google Cloud TTS voice name",
+          "pattern": "^[a-z]{2}-[A-Z]{2}-(Standard|Wavenet|Neural2)-[A-Z]$",
+          "examples": [
+            "en-GB-Neural2-D",
+            "en-GB-Neural2-B",
+            "en-US-Neural2-A"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "audioConfig": {
+      "type": "object",
+      "required": ["audioEncoding", "sampleRateHertz"],
+      "properties": {
+        "audioEncoding": {
+          "type": "string",
+          "description": "Output audio format",
+          "enum": ["MP3", "LINEAR16", "OGG_OPUS"],
+          "default": "MP3"
+        },
+        "sampleRateHertz": {
+          "type": "integer",
+          "description": "Sample rate in Hz",
+          "minimum": 8000,
+          "maximum": 48000,
+          "default": 24000,
+          "examples": [16000, 24000, 48000]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "input": {
+        "ssml": "<speak>Dover. Southerly 5 or 6.</speak>"
+      },
+      "voice": {
+        "languageCode": "en-GB",
+        "name": "en-GB-Neural2-D"
+      },
+      "audioConfig": {
+        "audioEncoding": "MP3",
+        "sampleRateHertz": 24000
+      }
+    }
+  ]
+}

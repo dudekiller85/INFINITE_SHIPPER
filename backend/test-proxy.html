@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TTS Proxy Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>TTS Proxy Test Page</h1>
+
+  <h2>Test Scenarios</h2>
+  <button id="test-synthesis">Test TTS Synthesis</button>
+  <button id="test-rate-limit">Test Rate Limiting (30+ requests)</button>
+  <button id="test-invalid-origin">Test Invalid Origin (will fail)</button>
+
+  <div id="result"></div>
+
+  <script>
+    // IMPORTANT: Update this URL after deploying the Worker
+    const PROXY_URL = 'http://localhost:8787/synthesize'; // Local dev
+    // const PROXY_URL = 'https://infinite-shipper-tts-proxy.username.workers.dev/synthesize'; // Production
+
+    const result = document.getElementById('result');
+
+    function log(message, isError = false) {
+      const span = document.createElement('span');
+      span.className = isError ? 'error' : 'success';
+      span.textContent = message + '\n';
+      result.appendChild(span);
+      result.scrollTop = result.scrollHeight;
+    }
+
+    // Test 1: Basic TTS Synthesis
+    document.getElementById('test-synthesis').addEventListener('click', async () => {
+      result.textContent = '';
+      log('Testing TTS synthesis...');
+
+      try {
+        const response = await fetch(PROXY_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: { ssml: '<speak>Dover. <break time="200ms"/> Southerly 5 or 6.</speak>' },
+            voice: { languageCode: 'en-GB', name: 'en-GB-Neural2-D' },
+            audioConfig: { audioEncoding: 'MP3', sampleRateHertz: 24000 },
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.audioContent) {
+          log(`✓ Success! Audio received: ${data.audioContent.substring(0, 50)}...`);
+          log(`  Response status: ${response.status}`);
+          log(`  Audio length: ${data.audioContent.length} chars`);
+        } else if (data.error) {
+          log(`✗ Error: ${data.error}`, true);
+        }
+      } catch (error) {
+        log(`✗ Request failed: ${error.message}`, true);
+      }
+    });
+
+    // Test 2: Rate Limiting
+    document.getElementById('test-rate-limit').addEventListener('click', async () => {
+      result.textContent = '';
+      log('Testing rate limiting (sending 31 requests)...');
+
+      const requests = [];
+      for (let i = 0; i < 31; i++) {
+        requests.push(
+          fetch(PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              input: { ssml: '<speak>Test</speak>' },
+              voice: { languageCode: 'en-GB', name: 'en-GB-Neural2-D' },
+              audioConfig: { audioEncoding: 'MP3', sampleRateHertz: 24000 },
+            }),
+          })
+        );
+      }
+
+      try {
+        const responses = await Promise.all(requests);
+        const statuses = responses.map(r => r.status);
+        const successCount = statuses.filter(s => s === 200).length;
+        const rateLimitCount = statuses.filter(s => s === 429).length;
+
+        log(`Requests sent: 31`);
+        log(`  Successful (200): ${successCount}`);
+        log(`  Rate limited (429): ${rateLimitCount}`);
+
+        if (rateLimitCount > 0) {
+          const rateLimitedResponse = await responses.find(r => r.status === 429).json();
+          log(`  Rate limit message: ${rateLimitedResponse.error}`);
+          if (rateLimitedResponse.retryAfter) {
+            log(`  Retry after: ${rateLimitedResponse.retryAfter} seconds`);
+          }
+        }
+
+        if (successCount <= 30 && rateLimitCount > 0) {
+          log('✓ Rate limiting working correctly!');
+        } else {
+          log('✗ Rate limiting may not be working as expected', true);
+        }
+      } catch (error) {
+        log(`✗ Test failed: ${error.message}`, true);
+      }
+    });
+
+    // Test 3: Invalid Origin (informational - will work in local dev)
+    document.getElementById('test-invalid-origin').addEventListener('click', () => {
+      result.textContent = '';
+      log('Note: Origin validation only works when deployed');
+      log('In local development (wrangler dev), all origins are allowed');
+      log('After deployment, unauthorized domains will receive 403 errors');
+    });
+  </script>
+</body>
+</html>

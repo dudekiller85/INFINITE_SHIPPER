@@ -9,10 +9,10 @@
 
 export const PROSODY_CONFIG = {
   // Speaking rates (FR-014)
-  // 85% for standard areas creates slow, deliberate BBC Radio 4 cadence
+  // 100% for standard areas uses normal speaking speed
   // 90% for phantom areas (additional to pitch reduction)
   rates: {
-    standard: 0.85,      // 85% of normal speed for standard areas
+    standard: 1.0,       // 100% normal speed for standard areas
     phantom: 0.9         // 90% for phantom (combined with 10% pitch reduction)
   },
 

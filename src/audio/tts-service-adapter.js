@@ -8,7 +8,8 @@
  * Phase 2: T008 - Skeleton Implementation
  */
 
-import { TTS_API_KEY } from '../config.js';
+// API key now securely managed by backend Worker proxy
+// import { TTS_API_KEY } from '../config.js';  // REMOVED - No longer needed
 
 /**
  * GoogleCloudTTSAdapter
@@ -50,13 +51,14 @@ export class GoogleCloudTTSAdapter {
     // TODO: Initialize stats tracking object
     // TODO: Setup retry policy with exponential backoff
 
-    this.apiKey = config.apiKey || TTS_API_KEY;
+    // API key removed - now handled by backend Worker proxy
+    this.apiKey = null;  // No longer needed in frontend
     this.timeout = config.timeout || 5000;
     this.retryAttempts = config.retryAttempts || 3;
     this.retryDelay = config.retryDelay || 100;
     this.voice = config.voice || {
       languageCode: 'en-GB',
-      name: 'en-GB-Neural2-B'
+      name: 'en-GB-Neural2-D'
     };
     this.audioConfig = config.audioConfig || {
       encoding: 'MP3',
@@ -130,9 +132,7 @@ export class GoogleCloudTTSAdapter {
       throw new Error('Invalid SSML template: ssml field is required');
     }
 
-    if (!this.apiKey) {
-      throw new Error('API key is not configured');
-    }
+    // API key check removed - handled by backend Worker
 
     const startTime = Date.now();
 
@@ -251,7 +251,8 @@ export class GoogleCloudTTSAdapter {
    * T026: Implementation with retry logic
    */
   async _callAPI(ssml, attempt = 1) {
-    const endpoint = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${this.apiKey}`;
+    // Route through backend Worker proxy for secure API key management
+    const endpoint = 'https://infinite-shipper-tts-proxy.dudekiller.workers.dev/synthesize';
 
     // Build request payload per Google Cloud TTS API spec
     const payload = {

@@ -99,7 +99,7 @@ describe('SSMLTemplateBuilder', () => {
       expect(result.ssml).toContain('<emphasis level="strong">Viking</emphasis>');
     });
 
-    it('should apply rate reduction (0.85) for standard areas', () => {
+    it('should apply normal rate (1.0) for standard areas', () => {
       const report = {
         area: 'Viking',
         isPhantom: false,
@@ -111,7 +111,7 @@ describe('SSMLTemplateBuilder', () => {
 
       const result = builder.build(report);
 
-      expect(result.ssml).toContain('<prosody rate="85%">');
+      expect(result.ssml).toContain('<prosody rate="100%">');
     });
 
     it('should apply reduced rate (0.9) for phantom areas', () => {

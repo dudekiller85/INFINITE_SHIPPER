@@ -1,0 +1,12 @@
+name = "infinite-shipper-tts-proxy"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:8080,https://petemyall.github.io/INFINITE_SHIPPER"
+RATE_LIMIT_THRESHOLD = "30"
+
+# KV namespace for rate limiting
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "09145712d4584fc5bef4a0ca2105db62"

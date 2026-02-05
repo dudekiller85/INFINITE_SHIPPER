@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>British Voice Comparison - Google Cloud TTS</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #00ff00;
+    }
+    h1 {
+      color: #00ff00;
+      border-bottom: 2px solid #00ff00;
+      padding-bottom: 10px;
+    }
+    .voice-section {
+      margin: 30px 0;
+      padding: 20px;
+      background: #001100;
+      border: 1px solid #004400;
+    }
+    .voice-section h2 {
+      color: #00ff00;
+      margin-top: 0;
+      font-size: 18px;
+    }
+    button {
+      background: #003300;
+      color: #00ff00;
+      border: 2px solid #00ff00;
+      padding: 15px 30px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+      font-family: 'Courier New', monospace;
+      min-width: 200px;
+    }
+    button:hover {
+      background: #004400;
+    }
+    button:disabled {
+      background: #222;
+      color: #666;
+      border-color: #666;
+      cursor: not-allowed;
+    }
+    button:active {
+      background: #006600;
+    }
+    .voice-info {
+      margin: 10px 0;
+      font-size: 14px;
+      color: #888;
+    }
+    #status {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #004400;
+      background: #000;
+      font-weight: bold;
+    }
+    .test-text {
+      margin: 20px 0;
+      padding: 20px;
+      background: #000;
+      border: 1px solid #00ff00;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .section-header {
+      color: #00ff00;
+      font-size: 20px;
+      margin: 30px 0 15px 0;
+      border-bottom: 1px solid #004400;
+      padding-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎙️ British Voice Comparison</h1>
+
+  <div id="status">Status: Initializing...</div>
+
+  <div class="test-text">
+    <strong>Test Text:</strong><br>
+    "Viking. Northwesterly 5 to 7, occasionally gale 8 at first. Rain or showers. Good, occasionally poor."
+  </div>
+
+  <div class="section-header">Neural2 Voices (Latest)</div>
+
+  <div class="voice-section">
+    <h2>en-GB-Neural2-A</h2>
+    <div class="voice-info">Gender: Female | Type: Neural2 (High Quality)</div>
+    <button class="voice-btn" data-voice="en-GB-Neural2-A">Test Voice A (Female)</button>
+  </div>
+
+  <div class="voice-section">
+    <h2>en-GB-Neural2-B</h2>
+    <div class="voice-info">Gender: Male | Type: Neural2 (High Quality) | CURRENT DEFAULT</div>
+    <button class="voice-btn" data-voice="en-GB-Neural2-B">Test Voice B (Male) ⭐</button>
+  </div>
+
+  <div class="voice-section">
+    <h2>en-GB-Neural2-C</h2>
+    <div class="voice-info">Gender: Female | Type: Neural2 (High Quality)</div>
+    <button class="voice-btn" data-voice="en-GB-Neural2-C">Test Voice C (Female)</button>
+  </div>
+
+  <div class="voice-section">
+    <h2>en-GB-Neural2-D</h2>
+    <div class="voice-info">Gender: Male | Type: Neural2 (High Quality)</div>
+    <button class="voice-btn" data-voice="en-GB-Neural2-D">Test Voice D (Male)</button>
+  </div>
+
+  <div class="voice-section">
+    <h2>en-GB-Neural2-F</h2>
+    <div class="voice-info">Gender: Female | Type: Neural2 (High Quality)</div>
+    <button class="voice-btn" data-voice="en-GB-Neural2-F">Test Voice F (Female)</button>
+  </div>
+
+  <div class="section-header">Standard Voices (Legacy)</div>
+
+  <div class="voice-section">
+    <h2>en-GB-Standard-A</h2>
+    <div class="voice-info">Gender: Female | Type: Standard (Basic Quality)</div>
+    <button class="voice-btn" data-voice="en-GB-Standard-A">Test Standard A (Female)</button>
+  </div>
+
+  <div class="voice-section">
+    <h2>en-GB-Standard-B</h2>
+    <div class="voice-info">Gender: Male | Type: Standard (Basic Quality)</div>
+    <button class="voice-btn" data-voice="en-GB-Standard-B">Test Standard B (Male)</button>
+  </div>
+
+  <div class="voice-section">
+    <h2>en-GB-Standard-C</h2>
+    <div class="voice-info">Gender: Female | Type: Standard (Basic Quality)</div>
+    <button class="voice-btn" data-voice="en-GB-Standard-C">Test Standard C (Female)</button>
+  </div>
+
+  <div class="voice-section">
+    <h2>en-GB-Standard-D</h2>
+    <div class="voice-info">Gender: Male | Type: Standard (Basic Quality)</div>
+    <button class="voice-btn" data-voice="en-GB-Standard-D">Test Standard D (Male)</button>
+  </div>
+
+  <div class="voice-section">
+    <h2>en-GB-Standard-F</h2>
+    <div class="voice-info">Gender: Female | Type: Standard (Basic Quality)</div>
+    <button class="voice-btn" data-voice="en-GB-Standard-F">Test Standard F (Female)</button>
+  </div>
+
+  <div class="section-header">WaveNet Voices (Premium)</div>
+
+  <div class="voice-section">
+    <h2>en-GB-Wavenet-A</h2>
+    <div class="voice-info">Gender: Female | Type: WaveNet (Premium Quality)</div>
+    <button class="voice-btn" data-voice="en-GB-Wavenet-A">Test WaveNet A (Female)</button>
+  </div>
+
+  <div class="voice-section">
+    <h2>en-GB-Wavenet-B</h2>
+    <div class="voice-info">Gender: Male | Type: WaveNet (Premium Quality)</div>
+    <button class="voice-btn" data-voice="en-GB-Wavenet-B">Test WaveNet B (Male)</button>
+  </div>
+
+  <div class="voice-section">
+    <h2>en-GB-Wavenet-C</h2>
+    <div class="voice-info">Gender: Female | Type: WaveNet (Premium Quality)</div>
+    <button class="voice-btn" data-voice="en-GB-Wavenet-C">Test WaveNet C (Female)</button>
+  </div>
+
+  <div class="voice-section">
+    <h2>en-GB-Wavenet-D</h2>
+    <div class="voice-info">Gender: Male | Type: WaveNet (Premium Quality)</div>
+    <button class="voice-btn" data-voice="en-GB-Wavenet-D">Test WaveNet D (Male)</button>
+  </div>
+
+  <div class="voice-section">
+    <h2>en-GB-Wavenet-F</h2>
+    <div class="voice-info">Gender: Female | Type: WaveNet (Premium Quality)</div>
+    <button class="voice-btn" data-voice="en-GB-Wavenet-F">Test WaveNet F (Female)</button>
+  </div>
+
+  <script type="module">
+    import { GoogleCloudTTSAdapter } from './src/audio/tts-service-adapter.js';
+
+    const statusEl = document.getElementById('status');
+    const voiceButtons = document.querySelectorAll('.voice-btn');
+
+    // Test text (same for all voices)
+    const TEST_TEXT = "Viking. Northwesterly 5 to 7, occasionally gale 8 at first. Rain or showers. Good, occasionally poor.";
+
+    let audioContext = null;
+    let isPlaying = false;
+
+    function updateStatus(message, isError = false) {
+      statusEl.textContent = message;
+      statusEl.style.color = isError ? '#ff0000' : '#00ff00';
+    }
+
+    function initAudioContext() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        console.log('AudioContext initialized');
+      }
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+    }
+
+    async function testVoice(voiceName) {
+      if (isPlaying) {
+        updateStatus('Already playing audio, please wait...', true);
+        return;
+      }
+
+      try {
+        initAudioContext();
+        isPlaying = true;
+
+        // Disable all buttons while playing
+        voiceButtons.forEach(btn => btn.disabled = true);
+
+        updateStatus(`Testing ${voiceName}...`);
+        console.log(`Testing voice: ${voiceName}`);
+
+        // Create TTS adapter with the selected voice
+        const tts = new GoogleCloudTTSAdapter({
+          voice: {
+            languageCode: 'en-GB',
+            name: voiceName
+          },
+          audioConfig: {
+            encoding: 'MP3',
+            sampleRate: 24000
+          }
+        });
+
+        // Build SSML template
+        const ssml = `<speak>${TEST_TEXT}</speak>`;
+        const template = {
+          ssml,
+          reportId: `voice-test-${voiceName}`,
+          areaName: 'Voice Test',
+          isPhantom: false,
+          characterCount: TEST_TEXT.length,
+          createdAt: Date.now()
+        };
+
+        // Synthesize
+        const startTime = Date.now();
+        const audio = await tts.synthesize(template);
+        const synthesisTime = Date.now() - startTime;
+
+        console.log(`Synthesized in ${synthesisTime}ms, duration: ${audio.duration.toFixed(2)}s`);
+        updateStatus(`Playing ${voiceName} (${audio.duration.toFixed(1)}s)...`);
+
+        // Play audio and wait for completion
+        await new Promise((resolve, reject) => {
+          const source = audioContext.createBufferSource();
+          source.buffer = audio.audioBuffer;
+          source.connect(audioContext.destination);
+
+          source.onended = () => {
+            console.log(`Playback complete for ${voiceName}`);
+            resolve();
+          };
+
+          source.onerror = (e) => {
+            console.error(`Playback error for ${voiceName}:`, e);
+            reject(new Error('Playback error'));
+          };
+
+          source.start();
+        });
+
+        updateStatus(`Completed ${voiceName} ✅`);
+
+      } catch (error) {
+        console.error(`Error testing ${voiceName}:`, error);
+        updateStatus(`Error: ${error.message}`, true);
+      } finally {
+        isPlaying = false;
+        // Re-enable all buttons
+        voiceButtons.forEach(btn => btn.disabled = false);
+      }
+    }
+
+    // Attach click handlers to all voice buttons
+    voiceButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const voiceName = button.getAttribute('data-voice');
+        testVoice(voiceName);
+      });
+    });
+
+    updateStatus('Ready - Click any button to test a voice');
+  </script>
+</body>
+</html>
