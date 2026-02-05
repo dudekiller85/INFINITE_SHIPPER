@@ -30,6 +30,8 @@ export class AudioPlayer {
     this.currentAreaIndex = 0; // NEW: Index within current broadcast's area forecasts
     this.pendingWarning = null; // T005: Pending warning for injection
     this.warningListenerRegistered = false; // T005: Track if listener already registered
+    this.audioLookAhead = new Map(); // NEW: Look-ahead synthesis cache
+    this.lookAheadPromise = null; // NEW: Track ongoing look-ahead synthesis
   }
 
   /**
@@ -166,28 +168,59 @@ export class AudioPlayer {
 
     console.log('[AudioPlayer] Playing EBNF broadcast:', broadcast.broadcastId);
 
-    // Play introduction
-    await this._speakText(broadcast.introduction.text, 'Introduction');
-
-    // Play gale warnings if present
+    // Build ordered segment list for look-ahead
+    const segments = [];
+    segments.push({ text: broadcast.introduction.text, label: 'Introduction' });
     if (broadcast.galeWarnings) {
-      await this._speakText(broadcast.galeWarnings.text, 'Gale Warnings');
+      segments.push({ text: broadcast.galeWarnings.text, label: 'Gale Warnings' });
     }
-
-    // Play general synopsis (NEW EBNF feature)
     if (broadcast.generalSynopsis) {
-      await this._speakText(broadcast.generalSynopsis.text, 'General Synopsis');
+      segments.push({ text: broadcast.generalSynopsis.text, label: 'General Synopsis' });
+    }
+    segments.push({ text: broadcast.timePeriod.text, label: 'Time Period' });
+
+    // Pre-synthesize first segment
+    if (segments.length > 0 && segments[0]) {
+      this._preSynthesizeText(segments[0].text, segments[0].label);
     }
 
-    // Play time period
-    await this._speakText(broadcast.timePeriod.text, 'Time Period');
-
-    // Play all area forecasts
-    for (const forecast of broadcast.areaForecasts) {
+    // Play introduction segments with look-ahead
+    for (let i = 0; i < segments.length; i++) {
       if (!this.isPlaying) break;
+
+      const segment = segments[i];
+      const nextSegment = segments[i + 1];
+
+      // Start pre-synthesizing next segment while current plays
+      if (nextSegment) {
+        this.lookAheadPromise = this._preSynthesizeText(nextSegment.text, nextSegment.label);
+      }
+
+      await this._speakText(segment.text, segment.label);
+
+      // Wait for look-ahead to complete before moving on
+      if (this.lookAheadPromise) {
+        await this.lookAheadPromise;
+        this.lookAheadPromise = null;
+      }
+    }
+
+    // Play all area forecasts with look-ahead
+    for (let i = 0; i < broadcast.areaForecasts.length; i++) {
+      if (!this.isPlaying) break;
+
+      const forecast = broadcast.areaForecasts[i];
+      const nextForecast = broadcast.areaForecasts[i + 1];
 
       this.currentReport = forecast;
       globalEventBus.emit('report:playing', forecast);
+
+      // Pre-synthesize next forecast while current plays
+      if (nextForecast && this.useSSML && this.ssmlSynthesizer) {
+        const nextText = nextForecast.text;
+        const nextLabel = nextForecast.area.name;
+        this.lookAheadPromise = this._preSynthesizeText(nextText, nextLabel);
+      }
 
       // Use SSML synthesizer for area forecasts
       if (this.useSSML && this.ssmlSynthesizer) {
@@ -201,6 +234,12 @@ export class AudioPlayer {
         }
       } else {
         await speechSynthesizer.speakReport(forecast);
+      }
+
+      // Wait for look-ahead to complete
+      if (this.lookAheadPromise) {
+        await this.lookAheadPromise;
+        this.lookAheadPromise = null;
       }
 
       globalEventBus.emit('report:complete', forecast);
@@ -283,16 +322,56 @@ export class AudioPlayer {
   }
 
   /**
+   * Pre-synthesize text for look-ahead (non-blocking)
+   * @private
+   */
+  async _preSynthesizeText(text, label) {
+    const cacheKey = `${label}:${text.substring(0, 50)}`;
+
+    // Check if already cached
+    if (this.audioLookAhead.has(cacheKey)) {
+      return;
+    }
+
+    console.log(`[AudioPlayer] Pre-synthesizing ${label} (look-ahead)`);
+
+    if (this.ssmlSynthesizer) {
+      try {
+        const generatedAudio = await this.ssmlSynthesizer.synthesizeText(text, label);
+        if (generatedAudio && generatedAudio.audioBlob) {
+          this.audioLookAhead.set(cacheKey, generatedAudio);
+          console.log(`[AudioPlayer] Look-ahead cached: ${label}`);
+        }
+      } catch (error) {
+        console.warn(`[AudioPlayer] Look-ahead synthesis failed for ${label}:`, error);
+        // Non-critical - will synthesize on-demand if needed
+      }
+    }
+  }
+
+  /**
    * Speak text using Google Cloud TTS (for broadcast segments)
    * @private
    */
   async _speakText(text, label) {
     console.log(`[AudioPlayer] Speaking ${label}:`, text.substring(0, 100) + '...');
 
+    const cacheKey = `${label}:${text.substring(0, 50)}`;
+
     // Use SSML synthesizer for Google Cloud TTS (consistent voice quality)
     if (this.ssmlSynthesizer) {
       try {
-        const generatedAudio = await this.ssmlSynthesizer.synthesizeText(text, label);
+        // Check look-ahead cache first
+        let generatedAudio = this.audioLookAhead.get(cacheKey);
+
+        if (generatedAudio) {
+          console.log(`[AudioPlayer] Using pre-synthesized audio for ${label}`);
+          this.audioLookAhead.delete(cacheKey); // Remove from cache after use
+        } else {
+          // Cache miss - synthesize now
+          console.log(`[AudioPlayer] Cache miss - synthesizing ${label} now`);
+          generatedAudio = await this.ssmlSynthesizer.synthesizeText(text, label);
+        }
 
         if (!generatedAudio || !generatedAudio.audioBlob) {
           throw new Error('SSML synthesis returned no audio');
