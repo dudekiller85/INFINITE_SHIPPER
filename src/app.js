@@ -130,11 +130,11 @@ async function initialize() {
   }
 
   // T008, T009, T010: Initialize inactivity warning system
-  // Must initialize audio player first, then focus monitor, then warning injector
-  await audioPlayer.initialize();
+  // Note: audioPlayer.initialize() is deferred until user clicks button (browser autoplay policy)
+  // Initialize focus monitor and warning injector first
   focusMonitor.initialize();
   warningInjector.initialize(focusMonitor, audioPlayer);
-  console.log('[App] Inactivity warning system initialized');
+  console.log('[App] Inactivity warning system initialized (AudioContext deferred until user gesture)');
 
   hideError();
   return true;
