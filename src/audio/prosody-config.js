@@ -51,6 +51,7 @@ export const PROSODY_CONFIG = {
 
   // Pronunciation corrections using phonetic respelling
   // IPA phoneme tags don't work reliably with Neural2 voices, so using direct text replacement
+  // Only Utsire needs correction - other area names sound better with default TTS pronunciation
   pronunciations: {
     'North Utsire': {
       word: 'Utsire',
@@ -61,31 +62,6 @@ export const PROSODY_CONFIG = {
       word: 'Utsire',
       respelling: 'Uutt-seerra',  // Phonetic respelling
       notes: 'Norwegian place name'
-    },
-    'Cromarty': {
-      word: 'Cromarty',
-      respelling: 'KROM-ar-tee',  // Phonetic respelling
-      notes: 'Scottish place name'
-    },
-    'Faeroes': {
-      word: 'Faeroes',
-      respelling: 'FAIR-ohs',  // Phonetic respelling
-      notes: 'Islands between Iceland and Norway'
-    },
-    'FitzRoy': {
-      word: 'FitzRoy',
-      respelling: 'fits-ROY',  // Phonetic respelling
-      notes: 'Named after Admiral Robert FitzRoy'
-    },
-    'Hebrides': {
-      word: 'Hebrides',
-      respelling: 'HEB-ri-deez',  // Phonetic respelling
-      notes: 'Scottish islands'
-    },
-    'Malin': {
-      word: 'Malin',
-      respelling: 'MAL-in',  // Phonetic respelling
-      notes: 'Irish headland'
     }
   }
 };
