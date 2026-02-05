@@ -85,9 +85,9 @@ export class SSMLTemplateBuilder {
       ? this._buildPrecipitationSSML(report.precipitation)
       : '';
 
-    // Visibility with reduced emphasis
+    // Visibility (no emphasis when level is 'none')
     const visibilitySSML = report.visibility
-      ? `<emphasis level="${PROSODY_CONFIG.emphasis.visibility}">${this._escape(report.visibility)}</emphasis><break time="${PROSODY_CONFIG.breaks.afterVisibility}"/>`
+      ? this._wrapWithEmphasis(this._escape(report.visibility), PROSODY_CONFIG.emphasis.visibility) + `<break time="${PROSODY_CONFIG.breaks.afterVisibility}"/>`
       : '';
 
     // NEW EBNF: Icing (optional, appears at end)
@@ -95,8 +95,11 @@ export class SSMLTemplateBuilder {
       ? this._buildIcingSSML(report.icing)
       : '';
 
-    // Assemble final SSML with prosody wrapper per EBNF format
-    const ssml = `<speak><prosody rate="${rate}%">${areaSSML}${breakAfterArea}${windSSML}${precipitationSSML}${visibilitySSML}${icingSSML}<break time="${PROSODY_CONFIG.breaks.endOfReport}"/></prosody></speak>`;
+    // Assemble final SSML (only wrap with prosody if rate is not 100%)
+    const content = `${areaSSML}${breakAfterArea}${windSSML}${precipitationSSML}${visibilitySSML}${icingSSML}<break time="${PROSODY_CONFIG.breaks.endOfReport}"/>`;
+    const ssml = rate === 100
+      ? `<speak>${content}</speak>`
+      : `<speak><prosody rate="${rate}%">${content}</prosody></speak>`;
 
     return {
       ssml,
@@ -128,6 +131,10 @@ export class SSMLTemplateBuilder {
 
     const areaSSML = this._buildAreaSSML(areaName);
 
+    // Only wrap with prosody if rate is not 100%
+    if (rate === 100) {
+      return `<speak>${areaSSML}<break time="1000ms"/></speak>`;
+    }
     return `<speak><prosody rate="${rate}%">${areaSSML}<break time="1000ms"/></prosody></speak>`;
   }
 
@@ -181,9 +188,11 @@ export class SSMLTemplateBuilder {
       ssmlContent += content;
     });
 
-    // Wrap everything in single <speak> tag with BBC Radio 4 prosody
+    // Wrap everything in single <speak> tag (only add prosody if rate is not 100%)
     const rate = Math.round(PROSODY_CONFIG.rates.standard * 100);
-    const ssml = `<speak><prosody rate="${rate}%">${ssmlContent}</prosody></speak>`;
+    const ssml = rate === 100
+      ? `<speak>${ssmlContent}</speak>`
+      : `<speak><prosody rate="${rate}%">${ssmlContent}</prosody></speak>`;
 
     return {
       ssml,
@@ -404,7 +413,18 @@ export class SSMLTemplateBuilder {
     // Check if this area has a pronunciation correction
     const pronunciation = PROSODY_CONFIG.pronunciations && PROSODY_CONFIG.pronunciations[areaName];
 
-    if (pronunciation && pronunciation.ipa) {
+    let processedName;
+
+    if (pronunciation && pronunciation.respelling) {
+      // Use direct phonetic respelling (most reliable with Neural2 voices)
+      // Simply replace the word with its phonetic spelling
+      const word = pronunciation.word;
+      const respelling = pronunciation.respelling;
+
+      // Replace the word with respelled version, then escape
+      const replaced = areaName.replace(word, respelling);
+      processedName = this._escape(replaced);
+    } else if (pronunciation && pronunciation.ipa) {
       // Use phoneme tag with IPA notation for precise pronunciation
       // Format: <phoneme alphabet="ipa" ph="...">word</phoneme>
       // Google Cloud TTS supports IPA phonemes for accurate pronunciation
@@ -413,28 +433,47 @@ export class SSMLTemplateBuilder {
 
       // Replace the word with phoneme-tagged version
       const escapedName = this._escape(areaName);
-      const substituted = escapedName.replace(
+      processedName = escapedName.replace(
         word,
         `<phoneme alphabet="ipa" ph="${ipa}">${word}</phoneme>`
       );
-
-      return `<emphasis level="${emphasisLevel}">${substituted}</emphasis>`;
     } else if (pronunciation && pronunciation.phonetic) {
       // Fallback to sub tag if only phonetic spelling is provided
       const word = pronunciation.word;
       const phonetic = pronunciation.phonetic;
 
       const escapedName = this._escape(areaName);
-      const substituted = escapedName.replace(
+      processedName = escapedName.replace(
         word,
         `<sub alias="${phonetic}">${word}</sub>`
       );
-
-      return `<emphasis level="${emphasisLevel}">${substituted}</emphasis>`;
     } else {
       // No pronunciation correction needed
-      return `<emphasis level="${emphasisLevel}">${this._escape(areaName)}</emphasis>`;
+      processedName = this._escape(areaName);
     }
+
+    // Wrap with emphasis only if emphasisLevel is not 'none'
+    return this._wrapWithEmphasis(processedName, emphasisLevel);
+  }
+
+  /**
+   * Wrap text with emphasis tag if level is not 'none'
+   *
+   * Conditionally wraps text in SSML emphasis tags. If emphasisLevel is 'none',
+   * returns the text unwrapped. Otherwise, wraps with <emphasis level="...">
+   *
+   * @private
+   * @param {string} text - Text to potentially wrap
+   * @param {string} emphasisLevel - Emphasis level ('none', 'reduced', 'moderate', 'strong')
+   *
+   * @returns {string} Text wrapped in emphasis tag or plain text
+   */
+  _wrapWithEmphasis(text, emphasisLevel) {
+    if (!text) return '';
+    if (emphasisLevel === 'none') {
+      return text;
+    }
+    return `<emphasis level="${emphasisLevel}">${text}</emphasis>`;
   }
 
   /**

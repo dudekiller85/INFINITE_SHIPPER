@@ -9,11 +9,10 @@
 
 export const PROSODY_CONFIG = {
   // Speaking rates (FR-014)
-  // 100% for standard areas uses normal speaking speed
-  // 90% for phantom areas (additional to pitch reduction)
+  // Removed rate adjustments - using natural speech speed
   rates: {
-    standard: 1.0,       // 100% normal speed for standard areas
-    phantom: 0.9         // 90% for phantom (combined with 10% pitch reduction)
+    standard: 1.0,       // 100% normal speed
+    phantom: 1.0         // Same as standard - no speed adjustment
   },
 
   // Pause durations in milliseconds (FR-020 through FR-025)
@@ -29,11 +28,11 @@ export const PROSODY_CONFIG = {
   },
 
   // Emphasis levels (FR-019, FR-026)
-  // Controls vocal stress and prominence
+  // Removed emphasis - using natural speech without artificial stress
   emphasis: {
-    areaName: 'strong',      // FR-019: Area names are headers, need strong emphasis
-    visibility: 'reduced',   // FR-026: Visibility de-emphasized for vocal variation
-    default: 'moderate'      // Default for most content
+    areaName: 'none',        // No emphasis on area names
+    visibility: 'none',      // No emphasis on visibility
+    default: 'none'          // No emphasis on any content
   },
 
   // Phantom area effects (FR-027, FR-028)
@@ -50,42 +49,42 @@ export const PROSODY_CONFIG = {
     }
   },
 
-  // Pronunciation corrections using IPA phonemes
-  // For area names that are commonly mispronounced by TTS engines
+  // Pronunciation corrections using phonetic respelling
+  // IPA phoneme tags don't work reliably with Neural2 voices, so using direct text replacement
   pronunciations: {
     'North Utsire': {
       word: 'Utsire',
-      ipa: 'ˈuːtsɪrə',  // OOT-seer-uh (Norwegian pronunciation)
+      respelling: 'Uutt-seerra',  // Phonetic respelling
       notes: 'Norwegian place name'
     },
     'South Utsire': {
       word: 'Utsire',
-      ipa: 'ˈuːtsɪrə',  // OOT-seer-uh
+      respelling: 'Uutt-seerra',  // Phonetic respelling
       notes: 'Norwegian place name'
     },
     'Cromarty': {
       word: 'Cromarty',
-      ipa: 'ˈkrɒmərti',     // KROM-ar-tee
+      respelling: 'KROM-ar-tee',  // Phonetic respelling
       notes: 'Scottish place name'
     },
     'Faeroes': {
       word: 'Faeroes',
-      ipa: 'ˈfɛəroʊz',      // FAIR-ohs
+      respelling: 'FAIR-ohs',  // Phonetic respelling
       notes: 'Islands between Iceland and Norway'
     },
     'FitzRoy': {
       word: 'FitzRoy',
-      ipa: 'fɪtsˈrɔɪ',      // fits-ROY
+      respelling: 'fits-ROY',  // Phonetic respelling
       notes: 'Named after Admiral Robert FitzRoy'
     },
     'Hebrides': {
       word: 'Hebrides',
-      ipa: 'ˈhɛbrɪdiːz',    // HEB-ri-deez
+      respelling: 'HEB-ri-deez',  // Phonetic respelling
       notes: 'Scottish islands'
     },
     'Malin': {
       word: 'Malin',
-      ipa: 'ˈmælɪn',        // MAL-in
+      respelling: 'MAL-in',  // Phonetic respelling
       notes: 'Irish headland'
     }
   }

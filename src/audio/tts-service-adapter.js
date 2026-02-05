@@ -269,6 +269,12 @@ export class GoogleCloudTTSAdapter {
       }
     };
 
+    // Debug logging for phoneme tag verification
+    console.log('[TTS-DEBUG] SSML being sent to API:', ssml);
+    if (ssml.includes('phoneme') || ssml.includes('Utsire')) {
+      console.log('[TTS-DEBUG] Full payload with phoneme tags:', JSON.stringify(payload, null, 2));
+    }
+
     // Set up timeout controller
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
